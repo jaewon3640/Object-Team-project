@@ -116,17 +116,35 @@ public class testpage extends JFrame {
 		SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 		clockLabel.setText("Current Time: " + formatter.format(new Date()));
 	}
+	
+	private void startGame() {    //페이라인별로 차감되는 Balance를 다르게 설정
+	    int selectedPayline = (Integer) paylineSelector.getSelectedItem(); // 선택된 페이라인 수
+	    int deductionAmount = payLineDeduction(selectedPayline); // 페이라인에 따른 차감 포인트 계산
+	    
+	    // 차감할 포인트가 현재 Balance보다 높으면 잔액 부족 메시지 출력
+	    if (balance < deductionAmount) {
+	        JOptionPane.showMessageDialog(this, "잔액이 부족합니다.");
+	        return;
+	    }
 
-	private void startGame() {  //게임 시작 조건 balance가 10 이하면 잔액 부족/ 게임은 balance시 10점씩 차감
-		if (balance < 10) {
-			JOptionPane.showMessageDialog(this, "잔액이 부족합니다.");
-			return;
-		}
+	    balance -= deductionAmount; // Balance에서 페이라인에 따라 차감
+	    balanceLabel.setText("Balance: " + balance + "점");
+	    startSpin();
+	}
 
-		balance -= 10; // Balance에서 10점 차감
-		balanceLabel.setText("Balance: " + balance + "점");
-		startSpin();
-	} 
+	// 페이라인별로 차감할 포인트를 반환하는 메서드
+	int payLineDeduction(int payLine) {
+	    switch (payLine) {
+	        case 1: return 10;    // 페이라인 1의 차감 포인트
+	        case 3: return 30;    // 페이라인 3의 차감 포인트
+	        case 5: return 50;    // 페이라인 5의 차감 포인트
+	        case 7: return 70;    // 페이라인 7의 차감 포인트
+	        case 9: return 90;    // 페이라인 9의 차감 포인트
+	        case 10: return 100;  // 페이라인 10의 차감 포인트
+	        default: return 10;   // 기본 차감 포인트 (정의되지 않은 경우)
+	    }
+	}
+
 	/*
 	 * protected void betMax() { if (balance > 0) { int maxBet = balance;
 	 * totalBettingAmount += maxBet; balance = 0; balanceLabel.setText("Balance: $"
