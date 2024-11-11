@@ -1,8 +1,11 @@
 package game;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,7 +34,6 @@ public class chipExchangePage extends JFrame {
 	}
 
 	static chipExchangePage main = null;
-
 	private JPanel panel;
 	private JButton excbutton,insertbutton;
 	private JLabel label;
@@ -39,7 +41,6 @@ public class chipExchangePage extends JFrame {
 	int chips;
 	GridLayoutEx keypad=new GridLayoutEx();
 	
-
 	public chipExchangePage() {
 		setTitle("chipExchange");
 		setSize(840, 640);
@@ -63,7 +64,7 @@ public class chipExchangePage extends JFrame {
 			}
 		};
 
-/*		txtmoney.setBounds(200, 160, 100, 40);
+		txtmoney.setBounds(200, 160, 100, 40);
 		txtmoney.setSize(80, 20);
 		txtmoney.addKeyListener(new KeyAdapter() {
 			@Override
@@ -74,7 +75,7 @@ public class chipExchangePage extends JFrame {
 				}
 			}
 		});
-		*/
+		
 		insertbutton = new JButton() {
 
 			@Override
@@ -88,7 +89,7 @@ public class chipExchangePage extends JFrame {
 			}
 		};
 		insertbutton.setSize(300,500);
-		insertbutton.setBounds(200, 160, 100, 40);
+		insertbutton.setBounds(300, 150, 100, 40);
 		
 		insertbutton.addActionListener(new ActionListener() {
 			
@@ -97,7 +98,7 @@ public class chipExchangePage extends JFrame {
 				keypad.run();
 			}
 		});
-	
+		
 		excbutton = new JButton() {
 
 			@Override
@@ -128,8 +129,12 @@ public class chipExchangePage extends JFrame {
 					} else {
 						JOptionPane.showMessageDialog(null, "exchange cancelled");
 					}
-				} else
-					JOptionPane.showMessageDialog(null, "enter more than 10000 krw");
+				} else {
+					JLabel label=new JLabel("Enter more than 10000 krw");
+					label.setFont(new Font("굴림",Font.BOLD,15));
+					label.setForeground(Color.red);;
+					JOptionPane.showMessageDialog(null, label,"ERROR",JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
 
@@ -140,7 +145,7 @@ public class chipExchangePage extends JFrame {
 		label.setFont(new Font("", Font.BOLD, 15));
 
 		panel.add(label);
-		//panel.add(txtmoney);
+		panel.add(txtmoney);
 		panel.add(excbutton);
 		panel.add(insertbutton);
 
@@ -153,7 +158,68 @@ public class chipExchangePage extends JFrame {
 		chips = money / 1000;
 		return chips;
 	}
+	class GridLayoutEx extends JFrame implements ActionListener{
+		
+		static final int rowSize=4;
+		static final int colSize=3;
+		JTextField T1;
+		JButton []Button=new JButton[12];
+		String tempinput="";
+		int enteredNum=0;
 
+		void run() {
+			setVisible(true);
+		}
+		
+		GridLayoutEx(){
+			setTitle("keypad");
+			setLayout(new BorderLayout());
+			setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			setLocationRelativeTo(null);
+			setResizable(false);
+			setPreferredSize(new Dimension(300,300));
+			setSize(300,300);
+			T1=new JTextField(15);
+			JPanel p1=new JPanel();
+			JPanel p2=new JPanel();
+			p1.add(T1);
+			p2.setLayout(new GridLayout(rowSize,colSize,5,5));
+			String []btnValue= {"1","2","3","4","5","6","7","8","9","Enter","0","C"};
+			
+			for(int i=0;i<12;i++) {
+				Button[i]=new JButton(btnValue[i]);
+				p2.add(Button[i]);
+				Button[i].addActionListener(this);
+			}
+			
+			add(p1,BorderLayout.NORTH);
+			add(p2,BorderLayout.CENTER);
+			//setVisible(true);
+			
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			String input=e.getActionCommand();
+			
+			if(input.equals("C")) {
+				tempinput="";
+				T1.setText("");
+			}
+			else if(input.equals("Enter")) {
+				enteredNum=Integer.parseInt(T1.getText());
+				JOptionPane.showMessageDialog(null,enteredNum+"krw 입력했습니다");
+				dispose();
+			}
+			else {
+			tempinput+=e.getActionCommand();
+			T1.setText(tempinput);
+			txtmoney.setText(tempinput);
+			
+			}
+		}
+	}
 	public static void main(String[] args) {
 		main = new chipExchangePage();
 		main.startGUI();
