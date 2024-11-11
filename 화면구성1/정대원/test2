@@ -210,6 +210,7 @@ public class chipExchangePage extends JFrame {
 			else if(input.equals("Enter")) {
 				enteredNum=Integer.parseInt(T1.getText());
 				JOptionPane.showMessageDialog(null,enteredNum+"krw 입력했습니다");
+				tempinput="";
 				T1.setText("");
 				dispose();
 			}
