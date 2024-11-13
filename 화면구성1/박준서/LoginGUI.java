@@ -75,7 +75,7 @@ public class LoginGUI extends JFrame {
         backgroundPanel.add(loginPanel, BorderLayout.CENTER);
 
         timeLabel = new JLabel();
-        timeLabel.setForeground(Color.white);
+        timeLabel.setForeground(Color.black);
         timeLabel.setFont(new Font("Serif", Font.BOLD, 30));
         backgroundPanel.add(timeLabel, BorderLayout.NORTH);
 
