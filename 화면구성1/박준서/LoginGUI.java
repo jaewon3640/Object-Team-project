@@ -46,6 +46,8 @@ public class LoginGUI extends JFrame {
         JButton loginButton = new JButton("로그인");
         JButton signUpButton = new JButton("회원가입");
 
+        gbc.anchor = GridBagConstraints.WEST;
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
