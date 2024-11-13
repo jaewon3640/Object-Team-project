@@ -18,7 +18,7 @@ public class LoginGUI extends JFrame {
 
     public LoginGUI() {
         setTitle("Slot Machine Game - Login");
-        setSize(800, 600);
+        setSize(800, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
