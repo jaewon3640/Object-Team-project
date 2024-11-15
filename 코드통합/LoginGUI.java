@@ -124,7 +124,8 @@ public class LoginGUI extends JFrame {
             dispose();
 
             // MainPage 창 열기
-            new MainPage(username);
+            new MainPage();
+            
         }
     }
 
