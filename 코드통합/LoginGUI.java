@@ -1,24 +1,24 @@
-package test;
+package Userinfo;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
-    private JLabel timeLabel;
     private Map<String, User> userDatabase = new HashMap<>();
 
     public LoginGUI() {
         setTitle("Slot Machine Game - Login");
-        setSize(800, 650);
+        setSize(850, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -26,8 +26,14 @@ public class LoginGUI extends JFrame {
         setContentPane(layeredPane);
         layeredPane.setLayout(new BorderLayout());
 
-        BackgroundPanel backgroundPanel = new BackgroundPanel("image.jpg");
+        BackgroundPanel backgroundPanel = new BackgroundPanel("imgs/imageSlot.png");
         backgroundPanel.setLayout(new BorderLayout());
+
+        JLabel titleLabel = new JLabel("   Slot           Game", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 45));
+        titleLabel.setForeground(Color.cyan);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(50, 0, 30, 0));
+        backgroundPanel.add(titleLabel, BorderLayout.NORTH);
 
         JPanel loginPanel = new JPanel(new GridBagLayout());
         loginPanel.setOpaque(false);
@@ -37,32 +43,43 @@ public class LoginGUI extends JFrame {
         usernameField = new JTextField(15);
         passwordField = new JPasswordField(15);
 
-        // 메시지 레이블 설정
         messageLabel = new JLabel();
         messageLabel.setForeground(Color.RED);
-        messageLabel.setPreferredSize(new Dimension(200, 25)); // 최대 너비 설정
-        messageLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        messageLabel.setPreferredSize(new Dimension(200, 25));
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         JButton loginButton = new JButton("로그인");
         JButton signUpButton = new JButton("회원가입");
 
+        JLabel usernameLabel = new JLabel("아이디 :");
+        usernameLabel.setFont(new Font("Serif", Font.PLAIN, 15));
+        usernameLabel.setForeground(Color.WHITE);
+
+        JLabel passwordLabel = new JLabel("비밀번호 :");
+        passwordLabel.setFont(new Font("Serif", Font.PLAIN, 15));
+        passwordLabel.setForeground(Color.WHITE);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-        loginPanel.add(new JLabel("아이디 :"), gbc);
+        gbc.anchor = GridBagConstraints.WEST;
+        loginPanel.add(usernameLabel, gbc);
 
         gbc.gridy = 1;
         loginPanel.add(usernameField, gbc);
 
         gbc.gridy = 2;
-        loginPanel.add(new JLabel("비밀번호 :"), gbc);
+        gbc.anchor = GridBagConstraints.WEST;
+        loginPanel.add(passwordLabel, gbc);
 
         gbc.gridy = 3;
+        gbc.gridwidth = 2;
         loginPanel.add(passwordField, gbc);
 
         gbc.gridy = 4;
         gbc.gridwidth = 2;
-        loginPanel.add(messageLabel, gbc); // 메시지 레이블 위치 고정
+        gbc.anchor = GridBagConstraints.CENTER;
+        loginPanel.add(messageLabel, gbc);
 
         gbc.gridy = 5;
         gbc.gridx = 0;
@@ -73,20 +90,6 @@ public class LoginGUI extends JFrame {
         loginPanel.add(signUpButton, gbc);
 
         backgroundPanel.add(loginPanel, BorderLayout.CENTER);
-
-        timeLabel = new JLabel();
-        timeLabel.setForeground(Color.white);
-        timeLabel.setFont(new Font("Serif", Font.BOLD, 30));
-        backgroundPanel.add(timeLabel, BorderLayout.NORTH);
-
-        Timer timer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateTime();
-            }
-        });
-        timer.start();
-
         layeredPane.add(backgroundPanel, BorderLayout.CENTER);
 
         loginButton.addActionListener(new ActionListener() {
@@ -108,12 +111,6 @@ public class LoginGUI extends JFrame {
         setVisible(true);
     }
 
-    private void updateTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        String time = sdf.format(new Date());
-        timeLabel.setText(time);
-    }
-
     private void handleLogin(String username, String password) {
         messageLabel.setText("");
         User user = userDatabase.get(username);
@@ -124,6 +121,10 @@ public class LoginGUI extends JFrame {
             messageLabel.setText("비밀번호를 다시 입력해주세요.");
         } else {
             JOptionPane.showMessageDialog(this, "로그인 성공! 게임 메인 페이지로 이동합니다.");
+            dispose();
+
+            // MainPage 창 열기
+            new MainPage(username);
         }
     }
 
@@ -151,7 +152,19 @@ public class LoginGUI extends JFrame {
             String birthdate = birthdateField.getText();
 
             if (!username.isEmpty() && !password.isEmpty()) {
-                userDatabase.put(username, new User(username, password, name, birthdate));
+                User newUser = new User(username, password, name, birthdate);
+                userDatabase.put(username, newUser);
+
+                // Save user information to "user.txt"
+                // 이부분을 통하여 정보를 저장함
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter("user.txt", true))) {
+                    writer.write(username + "," + password + "," + name + "," + birthdate);
+                    writer.newLine();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "회원 정보를 저장하는 중 오류가 발생했습니다.");
+                    ex.printStackTrace();
+                }
+
                 JOptionPane.showMessageDialog(this, "회원가입이 완료되었습니다!");
             } else {
                 JOptionPane.showMessageDialog(this, "아이디와 비밀번호는 필수 입력 사항입니다.");
