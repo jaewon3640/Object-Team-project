@@ -54,7 +54,7 @@ public class chipExchangePage extends JFrame {
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 
-				ImageIcon imageIcon = new ImageIcon("imgs/example4.png");
+				ImageIcon imageIcon = new ImageIcon("imgs/background03.png");
 				Image image = imageIcon.getImage();
 				g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
 			}
@@ -77,7 +77,7 @@ public class chipExchangePage extends JFrame {
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 
-				ImageIcon imageIcon = new ImageIcon("./image/exchangebutton.png");
+				ImageIcon imageIcon = new ImageIcon("imgs/moneybutton.png");
 				Image image = imageIcon.getImage();
 				g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
 
