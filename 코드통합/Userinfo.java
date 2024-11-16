@@ -12,7 +12,7 @@ public class Userinfo implements ActionListener {
     private JLabel imageLabel;
     private int currentImageIndex = 0;
     private String[] imagePaths = {"imgs/example.png", "imgs/example2.png", "imgs/example3.png"};
-
+         
     public Userinfo(User user) {
         this.user = user;  // 생성자에서 User 객체를 전달받음
     }

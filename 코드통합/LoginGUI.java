@@ -69,7 +69,6 @@ public class LoginGUI extends JFrame {
         loginPanel.add(usernameField, gbc);
 
         gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
         loginPanel.add(passwordLabel, gbc);
 
         gbc.gridy = 3;
@@ -125,7 +124,6 @@ public class LoginGUI extends JFrame {
 
             // MainPage 창 열기
             new MainPage();
-            
         }
     }
 
@@ -156,10 +154,9 @@ public class LoginGUI extends JFrame {
                 User newUser = new User(username, password, name, birthdate);
                 userDatabase.put(username, newUser);
 
-                // Save user information to "user.txt"
-                // 이부분을 통하여 정보를 저장함
+                // Save user information to "user.txt" using space as a separator
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter("user.txt", true))) {
-                    writer.write(username + "," + password + "," + name + "," + birthdate);
+                    writer.write(username + " " + password + " " + name + " " + birthdate);
                     writer.newLine();
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "회원 정보를 저장하는 중 오류가 발생했습니다.");

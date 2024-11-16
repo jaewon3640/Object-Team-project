@@ -31,7 +31,6 @@ public class MainPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // 메인 페이지를 닫고 chipExchangePage를 엽니다
-                dispose();
                 chipExchangePage exchangePage = new chipExchangePage();
                 exchangePage.startGUI();
                 exchangePage.setVisible(true);
@@ -45,9 +44,20 @@ public class MainPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Userinfo 페이지로 이동
-                dispose();
                 Userinfo userInfoPage = new Userinfo(user); // User 객체 전달
                 userInfoPage.startGUI();
+            }
+        });
+
+        // Ranking 페이지로 이동하는 버튼
+        JButton rankingButton = new JButton("Ranking으로 이동");
+        rankingButton.setFont(new Font("Serif", Font.BOLD, 18));
+        rankingButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Ranking 페이지로 이동
+                Ranking rankingPage = new Ranking(); // RankingPage 객체 생성
+                rankingPage.setVisible(true);  // RankingPage 화면 보이기
             }
         });
 
@@ -55,11 +65,12 @@ public class MainPage extends JFrame {
         setLayout(new BorderLayout());
         add(welcomeLabel, BorderLayout.CENTER);
 
-        // 버튼 패널에 칩 교환 및 Userinfo 버튼 추가
+        // 버튼 패널에 칩 교환, Userinfo, Ranking 버튼 추가
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(chipExchangeButton);
         buttonPanel.add(userInfoButton);
+        buttonPanel.add(rankingButton); // Ranking 버튼 추가
 
         // 버튼 패널을 하단에 배치
         add(buttonPanel, BorderLayout.SOUTH);
@@ -81,9 +92,9 @@ public class MainPage extends JFrame {
             
             // 마지막 줄이 존재하면 이를 파싱하여 User 객체 생성
             if (lastLine != null) {
-                String[] userData = lastLine.split(","); // ","로 구분된 데이터 파싱
+                String[] userData = lastLine.split(" "); // 공백으로 구분된 데이터 파싱
                 if (userData.length >= 4) {
-                    // user.txt의 데이터는 "아이디,비밀번호,이름,생일" 순서
+                    // user.txt의 데이터는 "아이디 비밀번호 이름 생일" 순서
                     user = new User(userData[0], userData[1], userData[2], userData[3]);
                 }
             }
