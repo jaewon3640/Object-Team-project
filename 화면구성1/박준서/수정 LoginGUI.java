@@ -1,10 +1,10 @@
+package Userinfo;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,11 +20,14 @@ public class LoginGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Load user data from the file
+        loadUserData();
+
         JLayeredPane layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
         layeredPane.setLayout(new BorderLayout());
 
-        BackgroundPanel backgroundPanel = new BackgroundPanel("imageSlot.png");
+        BackgroundPanel backgroundPanel = new BackgroundPanel("imgs/imageSlot.png");
         backgroundPanel.setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel("   Slot           Game", SwingConstants.CENTER);
@@ -67,7 +70,6 @@ public class LoginGUI extends JFrame {
         loginPanel.add(usernameField, gbc);
 
         gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
         loginPanel.add(passwordLabel, gbc);
 
         gbc.gridy = 3;
@@ -119,6 +121,10 @@ public class LoginGUI extends JFrame {
             messageLabel.setText("비밀번호를 다시 입력해주세요.");
         } else {
             JOptionPane.showMessageDialog(this, "로그인 성공! 게임 메인 페이지로 이동합니다.");
+            dispose();
+
+            // MainPage 창 열기
+            new MainPage();
         }
     }
 
@@ -149,9 +155,9 @@ public class LoginGUI extends JFrame {
                 User newUser = new User(username, password, name, birthdate);
                 userDatabase.put(username, newUser);
 
-                // Save user information to "user.txt"
+                // Save user information to "user.txt" using space as a separator
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter("user.txt", true))) {
-                    writer.write(username + "," + password + "," + name + "," + birthdate);
+                    writer.write(username + " " + password + " " + name + " " + birthdate);
                     writer.newLine();
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "회원 정보를 저장하는 중 오류가 발생했습니다.");
@@ -162,6 +168,24 @@ public class LoginGUI extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "아이디와 비밀번호는 필수 입력 사항입니다.");
             }
+        }
+    }
+
+    private void loadUserData() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("user.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                if (parts.length == 4) {
+                    String username = parts[0];
+                    String password = parts[1];
+                    String name = parts[2];
+                    String birthdate = parts[3];
+                    userDatabase.put(username, new User(username, password, name, birthdate));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading user data: " + e.getMessage());
         }
     }
 
