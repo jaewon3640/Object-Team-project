@@ -101,7 +101,7 @@ public class chipExchangePage extends JFrame {
 
 					if (result == JOptionPane.YES_OPTION) {
 						JOptionPane.showMessageDialog(null, "exchange confirmed");
-						user.setChipNum(getChip());
+						user.setChipNum(user.getChipNum()+getChip());
 						JOptionPane.showMessageDialog(null, getChip() + " chips aquired!");
 						
 					} else {
