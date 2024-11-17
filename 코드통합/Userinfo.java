@@ -70,7 +70,7 @@ public class Userinfo implements ActionListener {
         Object[][] statsData = {
             {"승률", "100%"},
             {"금액", "1000"},
-            {"환전한 칩 개수", "50"}
+            {"환전한 칩 개수",user.getChipNum()}
         };
 
         DefaultTableModel statsModel = new DefaultTableModel(statsData, statsColumns);
