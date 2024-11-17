@@ -26,23 +26,26 @@ public class chipExchangePage extends JFrame {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				setUpPanel();
+				setVisible(true);
 			}
 		});
 	}
 
-	static chipExchangePage main = null;
 	private JPanel panel;
 	private JButton excbutton;
+	private JButton backbutton;
 	private JLabel label;
 	private JTextField txtmoney = new JTextField(15);
 	int chips;
+	private User user;
 
-	public chipExchangePage() {
+	public chipExchangePage(User user) {
 		setTitle("chipExchange");
 		setSize(840, 640);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setResizable(false);
+		this.user=user;
 
 	}
 
@@ -98,12 +101,27 @@ public class chipExchangePage extends JFrame {
 
 					if (result == JOptionPane.YES_OPTION) {
 						JOptionPane.showMessageDialog(null, "exchange confirmed");
+						user.setChipNum(getChip());
 						JOptionPane.showMessageDialog(null, getChip() + " chips aquired!");
+						
 					} else {
 						JOptionPane.showMessageDialog(null, "exchange cancelled");
 					}
 				} else
 					JOptionPane.showMessageDialog(null, "enter more than 10000 krw");
+			}
+		});
+
+		backbutton=new JButton("back");
+		backbutton.setBounds(700,550,100,40);
+		backbutton.setSize(80,30);
+		backbutton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				dispose();
+				
 			}
 		});
 
@@ -117,6 +135,7 @@ public class chipExchangePage extends JFrame {
 		panel.add(label);
 		panel.add(txtmoney);
 		panel.add(excbutton);
+		panel.add(backbutton);
 
 		add(panel);
 	}
@@ -130,9 +149,7 @@ public class chipExchangePage extends JFrame {
 	}
 
 	public static void main(String[] args) {
-		main = new chipExchangePage();
-		main.startGUI();
-		main.setVisible(true);
+
 	}
 
 }
