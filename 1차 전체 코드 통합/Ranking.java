@@ -13,7 +13,7 @@ public class Ranking extends JFrame {
 
     public Ranking() {
         setTitle("게임 랭킹");
-        setSize(700, 500); 
+        setSize(700, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 창 닫기 옵션 변경
         setLocationRelativeTo(null);
 
@@ -45,10 +45,21 @@ public class Ranking extends JFrame {
         // 스크롤 패널 추가
         JScrollPane scrollPane = new JScrollPane(userTable);
 
+        // 메인 페이지로 돌아가는 버튼 추가
+        JButton backButton = new JButton("메인 페이지로 돌아가기");
+        backButton.setFont(new Font("Serif", Font.PLAIN, 16));
+        backButton.addActionListener(e -> {
+            // 메인 페이지로 돌아가기
+            new MainPage(); // MainPage 클래스를 생성하여 메인 페이지로 돌아가기
+            setVisible(false); // 현재 Ranking 창 닫기
+            dispose();
+        });
+
         // 레이아웃 배치
         setLayout(new BorderLayout());
         add(titleLabel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
+        add(backButton, BorderLayout.SOUTH);
 
         setVisible(true);
     }
