@@ -39,6 +39,7 @@ public class testpage extends JFrame {
 	// 생성자에서 로그인된 사용자 ID를 받아서 초기화
 	public testpage(String loggedInUserId) {
 		this.currentUserId = loggedInUserId; // 로그인된 사용자 ID 초기화
+		initializeSymbols(); // 심볼 아이콘 초기화
 		initializePaylines();
 		setTitle("Slot Machine");
 		setSize(600, 400);
@@ -113,10 +114,14 @@ public class testpage extends JFrame {
 	private void initializeSymbols() {
 	    symbolIcons = new ImageIcon[symbolPaths.length];
 	    for (int i = 0; i < symbolPaths.length; i++) {
-	        // 이미지 로드 및 크기 조정
-	        ImageIcon originalIcon = new ImageIcon(symbolPaths[i]);
-	        Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-	        symbolIcons[i] = new ImageIcon(scaledImage);
+	        try {
+	            ImageIcon originalIcon = new ImageIcon(symbolPaths[i]);
+	            Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+	            symbolIcons[i] = new ImageIcon(scaledImage);
+	        } catch (Exception e) {
+	            System.err.println("이미지 로드 실패: " + symbolPaths[i] + " - " + e.getMessage());
+	            symbolIcons[i] = null; // 실패한 경우 null로 설정
+	        }
 	    }
 	}
 
