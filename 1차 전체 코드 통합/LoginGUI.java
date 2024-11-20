@@ -1,4 +1,4 @@
-package Userinfo;
+package united;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -124,7 +124,7 @@ public class LoginGUI extends JFrame {
 					JOptionPane.showMessageDialog(null, "로그인 성공! 게임 메인 페이지로 이동합니다.");
 					dispose();
 					// MainPage 창 열기
-					new MainPage();
+					new MainPage(user); // 유저의 대한 객체 정보을 파일로 넘기고 실행 시키기
 				}
 				else {
 					JOptionPane.showMessageDialog(null, "로그인 실패, 다시 시도하세요.");

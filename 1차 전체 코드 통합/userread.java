@@ -1,4 +1,4 @@
-package Userinfo;
+package united;
 
 import java.util.Scanner;
 
@@ -7,24 +7,18 @@ public class userread {
     private String password;
     private String name;
     private String birthdate;
-    int score;
+    private int score;
 
-    // 데이터 읽기 메서드
+    // 파일에서 데이터를 읽어오는 메서드
     public void read(Scanner scanner) {
-        if (scanner.hasNext()) {
-            id = scanner.next();
-        }
-        if (scanner.hasNext()) {
-            password = scanner.next();
-        }
-        if (scanner.hasNext()) {
-            name = scanner.next();
-        }
-        if (scanner.hasNext()) {
-            birthdate = scanner.next();
-        }
-        if (scanner.hasNextInt()) {
-            setScore(scanner.nextInt());
+        String line = scanner.nextLine();
+        String[] parts = line.split(" "); // 공백 기준으로 분리
+        if (parts.length == 5) {
+            this.id = parts[0];
+            this.password = parts[1];
+            this.name = parts[2];
+            this.birthdate = parts[3];
+            this.score = Integer.parseInt(parts[4]); // 점수는 숫자로 변환
         }
     }
 
@@ -49,7 +43,8 @@ public class userread {
         return score;
     }
 
-	public void setScore(int score) {
-		this.score = score;
-	}
+    // Setter 메서드
+    public void setScore(int score) {
+        this.score = score;
+    }
 }

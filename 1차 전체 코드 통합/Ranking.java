@@ -1,4 +1,4 @@
-package Userinfo;
+package united;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,58 +13,53 @@ public class Ranking extends JFrame {
 
     public Ranking() {
         setTitle("게임 랭킹");
-        setSize(700, 500);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 창 닫기 옵션 변경
+        setSize(700, 500); // 창 크기 수정
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // 상단 제목 추가
         JLabel titleLabel = new JLabel("Ranking", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-
-        // 테이블에 사용자 데이터 표시
-        String[] columnNames = {"랭킹", "아이디", "이름", "생일", "점수"};
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0)); // 여백 추가        
+        
+        // User.txt 데이터를 읽어와 JTable에 표시
+        String[] columnNames = {"랭킹", "아이디", "비밀번호", "이름", "생일", "점수"};
         List<userread> userData = readUserFile("user.txt");
+
+        // 점수 내림차순으로 정렬 (랭킹 순)
+        userData.sort((user1, user2) -> Integer.compare(user2.getScore(), user1.getScore()));
 
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         int rank = 1;
         for (userread user : userData) {
-            tableModel.addRow(new Object[] {
-                rank++, 
-                user.getId(),
-                user.getName(),
-                user.getBirthdate(),
-                user.getScore()
+            tableModel.addRow(new Object[]{
+                    rank++, // 랭킹
+                    user.getId(),
+                    user.getPassword(),
+                    user.getName(),
+                    user.getBirthdate(),
+                    user.getScore()
             });
         }
 
         JTable userTable = new JTable(tableModel);
+
+        // 테이블의 폰트와 행 높이 설정
         userTable.setFont(new Font("Serif", Font.PLAIN, 14));
         userTable.setRowHeight(25);
 
-        // 스크롤 패널 추가
+        // 테이블을 스크롤 패널에 추가
         JScrollPane scrollPane = new JScrollPane(userTable);
 
-        // 메인 페이지로 돌아가는 버튼 추가
-        JButton backButton = new JButton("메인 페이지로 돌아가기");
-        backButton.setFont(new Font("Serif", Font.PLAIN, 16));
-        backButton.addActionListener(e -> {
-            // 메인 페이지로 돌아가기
-            new MainPage(); // MainPage 클래스를 생성하여 메인 페이지로 돌아가기
-            setVisible(false); // 현재 Ranking 창 닫기
-            dispose();
-        });
-
-        // 레이아웃 배치
+        // 레이아웃에 컴포넌트 추가
         setLayout(new BorderLayout());
-        add(titleLabel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-        add(backButton, BorderLayout.SOUTH);
+        add(titleLabel, BorderLayout.NORTH); // 제목을 위쪽에 추가
+        add(scrollPane, BorderLayout.CENTER); // 테이블은 중앙에 추가
 
         setVisible(true);
     }
 
-    // User.txt 읽기
+    // User.txt를 읽는 메서드
     private List<userread> readUserFile(String filePath) {
         List<userread> userData = new ArrayList<>();
 
@@ -78,7 +73,11 @@ public class Ranking extends JFrame {
             e.printStackTrace();
         }
 
-        userData.sort((u1, u2) -> Integer.compare(u2.getScore(), u1.getScore())); // 정렬 추가
         return userData;
+    }
+
+    public static void main(String[] args) {
+        // User.txt 데이터를 표시하는 테이블 실행
+        new Ranking();
     }
 }

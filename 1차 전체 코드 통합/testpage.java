@@ -1,4 +1,4 @@
-package Userinfo;
+package united;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -21,7 +21,10 @@ public class testpage extends JFrame {
 	private JLabel[][] reels;
 	private Timer timer;
 	private Random random;
-	private String[] symbols = { "1", "2", "3" };
+	private String[] symbolPaths = { "imgs/cherry.png", "imgs/lemon.png", "imgs/banana.png", "imgs/watermelon.png",
+			"imgs/golden-bell.png", "imgs/lucky 7.png", "imgs/singlebar.png" };
+	private ImageIcon[] symbolIcons;
+	private Map<String, ImageIcon> symbolImages;
 	private JLabel balanceLabel;
 	private JLabel totalLabel;
 	private JLabel clockLabel;
@@ -31,11 +34,11 @@ public class testpage extends JFrame {
 	private final Map<Integer, int[][]> paylines = new HashMap<>();
 	private int totalWinnings = 0;
 
-	    private String currentUserId;  // 로그인된 사용자 ID
+	private String currentUserId; // 로그인된 사용자 ID
 
-	    // 생성자에서 로그인된 사용자 ID를 받아서 초기화
-	    public testpage(String loggedInUserId) {
-	        this.currentUserId = loggedInUserId; // 로그인된 사용자 ID 초기화
+	// 생성자에서 로그인된 사용자 ID를 받아서 초기화
+	public testpage(String loggedInUserId) {
+		this.currentUserId = loggedInUserId; // 로그인된 사용자 ID 초기화
 		initializePaylines();
 		setTitle("Slot Machine");
 		setSize(600, 400);
@@ -49,7 +52,7 @@ public class testpage extends JFrame {
 		paylineRTP.put(3, 0.9788); // 3라인 RTP를 높임
 		paylineRTP.put(5, 0.9512); // 5라인 RTP를 높임
 		paylineRTP.put(7, 0.9482); // 7라인 RTP를 높임
-		paylineRTP.put(9, 0.922);  // 9라인 RTP를 높임
+		paylineRTP.put(9, 0.922); // 9라인 RTP를 높임
 		paylineRTP.put(10, 0.8852); // 10라인 RTP를 높임
 
 		// 시계 라벨 초기화
@@ -74,7 +77,7 @@ public class testpage extends JFrame {
 
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 5; j++) {
-				reels[i][j] = new JLabel(symbols[0], SwingConstants.CENTER);
+				reels[i][j] = new JLabel(symbolPaths[0], SwingConstants.CENTER);
 				reels[i][j].setFont(new Font("Arial", Font.PLAIN, 48));
 				slotPanel.add(reels[i][j]);
 			}
@@ -103,6 +106,18 @@ public class testpage extends JFrame {
 
 		add(slotPanel, BorderLayout.CENTER);
 		add(controlPanel, BorderLayout.SOUTH);
+	}
+
+	
+
+	private void initializeSymbols() {
+	    symbolIcons = new ImageIcon[symbolPaths.length];
+	    for (int i = 0; i < symbolPaths.length; i++) {
+	        // 이미지 로드 및 크기 조정
+	        ImageIcon originalIcon = new ImageIcon(symbolPaths[i]);
+	        Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+	        symbolIcons[i] = new ImageIcon(scaledImage);
+	    }
 	}
 
 	private void initializePaylines() { // 페이라인 별 행령 당첨 모양
@@ -160,32 +175,38 @@ public class testpage extends JFrame {
 	}
 
 	private void startSpin() {
-		resetBorders();
-		if (timer != null && timer.isRunning()) {
-			timer.stop();
-		}
+	    resetBorders();
+	    if (timer != null && timer.isRunning()) {
+	        timer.stop();
+	    }
 
-		timer = new Timer(100, new ActionListener() {
-			int ticks = 0;
+	    timer = new Timer(100, new ActionListener() {
+	        int ticks = 0;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < 4; i++) {
-					for (int j = 0; j < 5; j++) {
-						int index = random.nextInt(symbols.length);
-						reels[i][j].setText(symbols[index]);
-					}
-				}
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            for (int i = 0; i < 4; i++) {
+	                for (int j = 0; j < 5; j++) {
+	                    int index = random.nextInt(symbolIcons.length);
+	                    if (symbolIcons[index] != null) {
+	                        reels[i][j].setIcon(symbolIcons[index]);
+	                    } else {
+	                        System.err.println("Null icon for index: " + index); // 디버깅 로그
+	                        reels[i][j].setIcon(new ImageIcon()); // 빈 아이콘 설정
+	                    }
+	                    reels[i][j].setText(null);
+	                }
+	            }
 
-				ticks++;
-				if (ticks > 10) {
-					timer.stop();
-					checkWin();
-				}
-			}
-		});
+	            ticks++;
+	            if (ticks > 10) {
+	                timer.stop();
+	                checkWin();
+	            }
+	        }
+	    });
 
-		timer.start();
+	    timer.start();
 	}
 
 	private void checkWin() {
@@ -237,13 +258,19 @@ public class testpage extends JFrame {
 
 	// 페이라인 패턴이 맞는지 확인하는 메서드
 	private boolean checkPaylineMatch(int[][] paylinePattern) {
-		for (int[] pos : paylinePattern) {
-			String symbol = reels[pos[0]][pos[1]].getText();
-			if (!symbol.equals(reels[paylinePattern[0][0]][paylinePattern[0][1]].getText())) {
-				return false;
-			}
-		}
-		return true; // 모든패턴이 맞으면 true
+	    // 첫 번째 위치의 아이콘을 기준으로 비교
+	    ImageIcon firstIcon = (ImageIcon) reels[paylinePattern[0][0]][paylinePattern[0][1]].getIcon();
+	    if (firstIcon == null) {
+	        return false; // 첫 번째 아이콘이 없으면 일치하지 않음
+	    }
+
+	    for (int[] pos : paylinePattern) {
+	        ImageIcon currentIcon = (ImageIcon) reels[pos[0]][pos[1]].getIcon();
+	        if (!firstIcon.equals(currentIcon)) {
+	            return false; // 하나라도 다르면 false
+	        }
+	    }
+	    return true; // 모두 같으면 true
 	}
 
 	private void highlightWin(int[][] positions) {
@@ -261,38 +288,37 @@ public class testpage extends JFrame {
 	}
 
 	private void endGame() {
-	    JOptionPane.showMessageDialog(this, "게임을 종료합니다.");
+		JOptionPane.showMessageDialog(this, "게임을 종료합니다.");
 
-	    // 현재 사용자 정보를 읽어와서 누적 점수를 반영
-	    List<userread> userData = readUserFile("user.txt");
-	    
-	    // 로그인된 사용자 ID를 사용
-	    String currentUserId = this.currentUserId; // 이미 로그인 시 전달된 currentUserId 사용
+		// 현재 사용자 정보를 읽어와서 누적 점수를 반영
+		List<userread> userData = readUserFile("user.txt");
 
-	    boolean userFound = false;
-	    for (userread user : userData) {
-	        if (user.getId().equals(currentUserId)) {
-	            user.setScore(user.getScore() + totalWinnings); // 누적 점수 추가
-	            userFound = true;
-	            break; // 해당 사용자만 업데이트하고 반복문 종료
-	        }
-	    }
+		// 로그인된 사용자 ID를 사용
+		String currentUserId = this.currentUserId; // 이미 로그인 시 전달된 currentUserId 사용
 
-	    // 사용자가 발견되지 않았을 경우
-	    if (!userFound) {
-	        JOptionPane.showMessageDialog(this, "로그인된 사용자 정보를 찾을 수 없습니다.");
-	    } else {
-	        // 사용자 정보를 다시 파일에 저장
-	        writeUserFile(userData);
+		boolean userFound = false;
+		for (userread user : userData) {
+			if (user.getId().equals(currentUserId)) {
+				user.setScore(user.getScore() + totalWinnings); // 누적 점수 추가
+				userFound = true;
+				break; // 해당 사용자만 업데이트하고 반복문 종료
+			}
+		}
 
-	        // Ranking 화면으로 이동
-	        new Ranking();
-	        setVisible(false);
-	        dispose(); // JFrame 자원 해제
-	        totalWinnings = 0; // 누적 당첨 점수 초기화
-	    }
+		// 사용자가 발견되지 않았을 경우
+		if (!userFound) {
+			JOptionPane.showMessageDialog(this, "로그인된 사용자 정보를 찾을 수 없습니다.");
+		} else {
+			// 사용자 정보를 다시 파일에 저장
+			writeUserFile(userData);
+
+			// Ranking 화면으로 이동
+			new Ranking();
+			setVisible(false);
+			dispose(); // JFrame 자원 해제
+			totalWinnings = 0; // 누적 당첨 점수 초기화
+		}
 	}
-
 
 	private List<userread> readUserFile(String filePath) {
 		List<userread> userData = new ArrayList<>();
@@ -323,16 +349,18 @@ public class testpage extends JFrame {
 	}
 
 	private void createSlotGame() {
-	    setDefaultCloseOperation(EXIT_ON_CLOSE);
-	    pack();
-	    setVisible(true);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pack();
+		setVisible(true);
 	}
-	public static void main(String[] args) {
-	    // 예시로 로그인된 사용자 ID를 지정합니다. 실제로는 로그인 화면에서 이 값을 받아야 합니다.
-	    String loggedInUserId = "exampleUser"; // 로그인된 사용자 ID
 
-	    // 생성자에 로그인된 사용자 ID를 전달
-	    testpage slot = new testpage(loggedInUserId);
-	    slot.createSlotGame();
+	public static void main(String[] args) {
+		// 예시로 로그인된 사용자 ID를 지정합니다. 실제로는 로그인 화면에서 이 값을 받아야 합니다.
+		String loggedInUserId = "exampleUser"; // 로그인된 사용자 ID
+
+		// 생성자에 로그인된 사용자 ID를 전달
+		testpage slot = new testpage(loggedInUserId);
+		slot.initializeSymbols();
+		slot.createSlotGame();
 	}
 }
