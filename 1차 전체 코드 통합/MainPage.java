@@ -35,7 +35,8 @@ public class MainPage extends JPanel {
         mainPanel.add(chipExchangePanel, "ChipExchangePage");  // ChipExchangePage 추가
         Userinfo userInfoPage = new Userinfo(user); // Userinfo 객체 생성
         mainPanel.add(userInfoPage, "UserInfoPage");  // UserInfoPage를 mainPanel에 추가
-        
+        HowToPlay howToPlayPanel = new HowToPlay(cardLayout, mainPanel);
+        mainPanel.add(howToPlayPanel, "HowToPlay");
         testpage gamePanel = new testpage(user.getId(), cardLayout, mainPanel);
         mainPanel.add(gamePanel, "testpage");  // "testpage"라는 이름으로 gamePanel을 추가
 
@@ -59,9 +60,13 @@ public class MainPage extends JPanel {
         // UserInfo 버튼
         JButton userInfoButton = createRetroButton("User Info", 300, 440);
         userInfoButton.addActionListener(e -> cardLayout.show(mainPanel, "UserInfoPage"));
-
+        
+        // How to Play 버튼
+        JButton howToPlayButton = createRetroButton("How to Play", 300, 520);
+        howToPlayButton.addActionListener(e -> cardLayout.show(mainPanel, "HowToPlay"));
+        
         // Exit 버튼
-        JButton exitButton = createRetroButton("Exit", 300, 520);
+        JButton exitButton = createRetroButton("Exit", 300, 600);
         exitButton.addActionListener(e -> System.exit(0));
 
         // 패널에 추가
@@ -70,6 +75,7 @@ public class MainPage extends JPanel {
         add(rankingButton);  // Ranking 버튼 추가
         add(userInfoButton);
         add(exitButton);
+        add(howToPlayButton);
     }
 
 
