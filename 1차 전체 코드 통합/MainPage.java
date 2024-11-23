@@ -2,115 +2,78 @@ package united;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
-public class MainPage extends JFrame {
+public class MainPage extends JPanel {
     private User user;
     private ArrayList<Dot> dots = new ArrayList<>();
     private Timer fireworksTimer;
     private Image coinImage;
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
 
-    public MainPage(User user) {
+    public MainPage(User user, CardLayout cardLayout, JPanel mainPanel) {
         this.user = user;
+        this.cardLayout = cardLayout;
+        this.mainPanel = mainPanel;
 
-        setTitle("Retro Slot Machine - Main Page");
-        setSize(800, 650);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        // 이미지 로드
+       // coinImage = new ImageIcon(getClass().getClassLoader().getResource("imgs/coin.png")).getImage();
 
-        // 코인 이미지 로드
-        coinImage = new ImageIcon("imgs/coin.png").getImage();
+        // 메인 화면 구성
+        setLayout(null);
+        setBackground(Color.BLACK);
 
-        JPanel mainPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                setBackground(Color.BLACK);
+        createButtons();
+        startFireworks(); // 불꽃놀이 애니메이션 시작
+        
+        Ranking rankingPanel = new Ranking(cardLayout, mainPanel);
+        mainPanel.add(rankingPanel, "Ranking"); // "Ranking" 이름으로 Ranking 패널을 mainPanel에 추가
+        chipExchangePage chipExchangePanel = new chipExchangePage(user, cardLayout, mainPanel);
+        mainPanel.add(chipExchangePanel, "ChipExchangePage");  // ChipExchangePage 추가
+        Userinfo userInfoPage = new Userinfo(user); // Userinfo 객체 생성
+        mainPanel.add(userInfoPage, "UserInfoPage");  // UserInfoPage를 mainPanel에 추가
+        
+        testpage gamePanel = new testpage(user.getId(), cardLayout, mainPanel);
+        mainPanel.add(gamePanel, "testpage");  // "testpage"라는 이름으로 gamePanel을 추가
 
-                g.setColor(Color.YELLOW);
-                g.setFont(new Font("Monospaced", Font.BOLD, 40));
-                g.drawString("🎰 SLOT MACHINE GAME 🎰", 100, 100);
-
-                g.setFont(new Font("Monospaced", Font.PLAIN, 20));
-                g.setColor(Color.YELLOW);
-                g.drawString("Welcome, " + user.getName() + "!", 300, 150);
-
-                // 불꽃놀이 그리기
-                for (Dot dot : dots) {
-                    dot.draw(g);
-                }
-            }
-        };
-
-        // 불꽃놀이 애니메이션 설정
-        Random random = new Random();
-        fireworksTimer = new Timer(50, e -> {
-            // 새 도트 생성
-            if (random.nextInt(10) < 3) { // 30% 확률로 도트 생성
-                int x = random.nextInt(mainPanel.getWidth());
-                int y = random.nextInt(mainPanel.getHeight());
-                dots.add(new Dot(x, y, coinImage)); // Dot에 코인 이미지 전달
-            }
-
-            // 도트 업데이트
-            Iterator<Dot> iterator = dots.iterator();
-            while (iterator.hasNext()) {
-                Dot dot = iterator.next();
-                if (!dot.update()) {
-                    iterator.remove(); // 수명이 다한 도트 제거
-                }
-            }
-
-            mainPanel.repaint();
-        });
-        fireworksTimer.start();
-
-        mainPanel.setLayout(null);
-
-        // 레트로 버튼 생성
-        JButton startGameButton = createRetroButton("Start Game", 300, 200);
-        JButton chipExchangeButton = createRetroButton("Chip Exchange", 300, 280);
-        JButton rankingButton = createRetroButton("Ranking", 300, 360); // Ranking 버튼
-        JButton userInfoButton = createRetroButton("User Info", 300, 440);
-        JButton exitButton = createRetroButton("Exit Game", 300, 520);
-
-        // 버튼 동작 추가
-        startGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // testpage로 이동, 로그인한 사용자 ID를 전달
-                testpage slotGamePage = new testpage(user.getId()); // 로그인된 사용자 ID 전달
-                slotGamePage.setVisible(true); // 슬롯 머신 게임 화면 보이기
-                setVisible(true);
-            }
-        });
-        chipExchangeButton.addActionListener(e -> new chipExchangePage(user).startGUI());
-        rankingButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Ranking 페이지로 이동
-            	new Ranking(); // User 객체를 전달하여 Ranking 페이지로 이동
-                setVisible(true);  // RankingPage 화면 보이기
-            }
-        });
-        userInfoButton.addActionListener(e -> new Userinfo(user).startGUI());
-        exitButton.addActionListener(e -> System.exit(0));
-
-        // 패널에 버튼 추가
-        mainPanel.add(startGameButton);
-        mainPanel.add(chipExchangeButton);
-        mainPanel.add(rankingButton);
-        mainPanel.add(userInfoButton);
-        mainPanel.add(exitButton);
-
-        add(mainPanel);
-        setVisible(true);
+        
     }
 
+ // MainPage 클래스
+    private void createButtons() {
+        // SlotGame 버튼
+        JButton slotGameButton = createRetroButton("Slot Game", 300, 200);
+        slotGameButton.addActionListener(e -> cardLayout.show(mainPanel, "testpage"));
+
+        // ChipExchange 버튼
+        JButton chipExchangeButton = createRetroButton("Chip Exchange", 300, 280);
+        chipExchangeButton.addActionListener(e -> cardLayout.show(mainPanel, "ChipExchangePage"));
+
+        // Ranking 버튼
+        JButton rankingButton = createRetroButton("Ranking", 300, 360);
+        rankingButton.addActionListener(e -> cardLayout.show(mainPanel, "Ranking"));
+
+        // UserInfo 버튼
+        JButton userInfoButton = createRetroButton("User Info", 300, 440);
+        userInfoButton.addActionListener(e -> cardLayout.show(mainPanel, "UserInfoPage"));
+
+        // Exit 버튼
+        JButton exitButton = createRetroButton("Exit", 300, 520);
+        exitButton.addActionListener(e -> System.exit(0));
+
+        // 패널에 추가
+        add(slotGameButton);
+        add(chipExchangeButton);
+        add(rankingButton);  // Ranking 버튼 추가
+        add(userInfoButton);
+        add(exitButton);
+    }
+
+
+    // 버튼 스타일 설정
     private JButton createRetroButton(String text, int x, int y) {
         JButton button = new JButton(text);
         button.setBounds(x, y, 200, 50);
@@ -136,34 +99,80 @@ public class MainPage extends JFrame {
         return button;
     }
 
-    private static class Dot {
-        private int x, y, alpha;
-        private Image image;
+    // 불꽃놀이 애니메이션 시작
+    private void startFireworks() {
+        Random random = new Random();
+        fireworksTimer = new Timer(50, e -> {
+            if (random.nextInt(10) < 3) { // 30% 확률로 도트 생성
+                int x = random.nextInt(getWidth());
+                int y = random.nextInt(getHeight());
+                dots.add(new Dot(x, y));
+            }
 
-        public Dot(int x, int y, Image image) {
+            // 도트 업데이트
+            Iterator<Dot> iterator = dots.iterator();
+            while (iterator.hasNext()) {
+                Dot dot = iterator.next();
+                if (!dot.update()) {
+                    iterator.remove(); // 수명이 다한 도트 제거
+                }
+            }
+
+            repaint();
+        });
+        fireworksTimer.start();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        // 배경 및 텍스트
+        String title = "🎰 SLOT MACHINE GAME 🎰";
+        g.setFont(new Font("Monospaced", Font.BOLD, 40));
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(title);
+        int x = (getWidth() - textWidth) / 2;
+        int y = 100;
+
+        g.setColor(Color.YELLOW);
+        g.drawString(title, x, y);
+
+        String welcomeMessage = "Welcome, " + user.getName() + "!";
+        g.setFont(new Font("Monospaced", Font.PLAIN, 20));
+        int welcomeTextWidth = g.getFontMetrics().stringWidth(welcomeMessage);
+        int welcomeX = (getWidth() - welcomeTextWidth) / 2;
+        g.drawString(welcomeMessage, welcomeX, y + 50);
+
+        // 불꽃놀이 도트 그리기
+        for (Dot dot : dots) {
+            dot.draw(g);
+        }
+    }
+
+    // 불꽃놀이 도트 클래스
+    private class Dot {
+        private int x, y, alpha;
+
+        public Dot(int x, int y) {
             this.x = x;
             this.y = y;
-            this.image = image;
             this.alpha = 255;
         }
 
         public boolean update() {
             y += 2;
-            alpha -= 10; // 투명도 감소
-            return alpha > 0; // 투명도가 0보다 크면 유지
+            alpha -= 10;
+            return alpha > 0;
         }
 
         public void draw(Graphics g) {
             if (alpha > 0) {
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f)); // 투명도 설정
-                g2d.drawImage(image, x, y, 20, 20, null); // 16x16 크기로 이미지 그리기
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
+                g2d.setColor(Color.YELLOW);
+                g2d.fillOval(x, y, 10, 10);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        User sampleUser = new User("testUser", "password", "Player1", "1990-01-01");
-        new MainPage(sampleUser);
     }
 }

@@ -1,49 +1,34 @@
 package united;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
 
-public class Userinfo implements ActionListener {
+public class Userinfo extends JPanel implements ActionListener {
     private User user;  // User 객체
-    private JFrame mainFrame;
-    private JLabel imageLabel;
-    private int currentImageIndex = 0;
-    private String[] imagePaths = {"imgs/example.png", "imgs/example2.png", "imgs/example3.png"};
-         
+
     public Userinfo(User user) {
         this.user = user;  // 생성자에서 User 객체를 전달받음
+        setupUI();
     }
 
-    public void startGUI() {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
+    private void setupUI() {
+        setLayout(new CardLayout());
+
+        // 첫 번째 카드: 기본 정보 화면
+        JPanel card1 = createInfoPanel();
+
+        // 두 번째 카드: 수정 화면
+        JPanel card2 = createEditPanel();
+
+        // 카드 추가
+        add(card1, "기존 화면");
+        add(card2, "수정 화면");
     }
 
-    private void createAndShowGUI() {
-        mainFrame = new JFrame("User Info");
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JPanel pane = setupMainPanel();
-        mainFrame.setPreferredSize(new Dimension(840, 540));
-        mainFrame.getContentPane().add(pane);
-        mainFrame.setBackground(Color.RED);
-
-        // Display the window.
-        mainFrame.pack();
-        mainFrame.setVisible(true);
-    }
-
-    private JPanel setupMainPanel() {
-        JPanel mainPane = new JPanel(new CardLayout());
-
-        // 카드 레이아웃을 위한 패널 생성
-        JPanel card1 = new JPanel(new BorderLayout()); // 기존 화면
-        JPanel card2 = new JPanel(new BorderLayout()); // 수정 화면
+    private JPanel createInfoPanel() {
+        JPanel card1 = new JPanel(new BorderLayout());
 
         // 기본 정보 테이블
         String[] personalInfoColumns = {"항목", "정보"};
@@ -55,47 +40,36 @@ public class Userinfo implements ActionListener {
         };
 
         DefaultTableModel personalInfoModel = new DefaultTableModel(personalInfoData, personalInfoColumns);
-        JTable personalInfoTable = new JTable(personalInfoModel);
-        
-        // 테이블 폰트와 글자 크기 설정
-        Font tableFont = new Font("맑은 고딕", Font.PLAIN, 18);  // 폰트와 크기 설정
-        personalInfoTable.setFont(tableFont);
-        personalInfoTable.setRowHeight(40);  // 각 행의 높이 설정
-        personalInfoTable.getTableHeader().setFont(new Font("맑은 고딕", Font.BOLD, 20));  // 헤더 폰트 설정
-
-        JScrollPane personalInfoScrollPane = new JScrollPane(personalInfoTable);
+        JTable personalInfoTable = createStyledTable(personalInfoModel);
 
         // 승률 및 통계 테이블
         String[] statsColumns = {"항목", "정보"};
         Object[][] statsData = {
             {"승률", "100%"},
             {"금액", "1000"},
-            {"환전한 칩 개수",user.getChipNum()}
+            {"환전한 칩 개수", user.getChipNum()}
         };
 
         DefaultTableModel statsModel = new DefaultTableModel(statsData, statsColumns);
-        JTable statsTable = new JTable(statsModel);
-        
-        // 승률 및 통계 테이블 폰트와 글자 크기 설정
-        statsTable.setFont(tableFont);
-        statsTable.setRowHeight(40);
-        statsTable.getTableHeader().setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        JTable statsTable = createStyledTable(statsModel);
 
+        // 스크롤 팬으로 테이블 감싸기
+        JScrollPane personalInfoScrollPane = new JScrollPane(personalInfoTable);
         JScrollPane statsScrollPane = new JScrollPane(statsTable);
 
-        // 수정 버튼 및 나가기 버튼
+        // 버튼
         JButton editButton = new JButton("수정");
         JButton exitButton = new JButton("나가기");
 
         editButton.addActionListener(e -> {
-            // 수정 화면으로 전환
-            CardLayout cardLayout = (CardLayout) mainPane.getLayout();
-            cardLayout.show(mainPane, "수정 화면");
+            CardLayout cardLayout = (CardLayout) getLayout();
+            cardLayout.show(this, "수정 화면");
         });
 
         exitButton.addActionListener(e -> {
-            // 나가기 버튼 처리
-            mainFrame.dispose();
+            // 메인 페이지로 돌아가기 (MainPage에서 관리되도록 수정)
+            CardLayout cardLayout = (CardLayout) getParent().getLayout();
+            cardLayout.show(getParent(), "MainPage"); // MainPage로 돌아가기
         });
 
         JPanel buttonPanel = new JPanel();
@@ -104,7 +78,7 @@ public class Userinfo implements ActionListener {
         buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(exitButton);
 
-        // 기존 화면에 테이블과 버튼 추가
+        // 카드 구성
         JPanel labelPanel = new JPanel();
         labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
         labelPanel.add(personalInfoScrollPane);
@@ -113,27 +87,14 @@ public class Userinfo implements ActionListener {
         labelPanel.add(Box.createVerticalStrut(10));
         labelPanel.add(buttonPanel);
 
-        // 이미지 설정
-        imageLabel = new JLabel(new ImageIcon(imagePaths[currentImageIndex]));
-        JPanel imagePanel1 = new JPanel(new BorderLayout());
-        imagePanel1.add(imageLabel, BorderLayout.CENTER);
-
-        // 이미지 변경 버튼
-        JButton prevButton = new JButton("이전 이미지");
-        JButton nextButton = new JButton("다음 이미지");
-        prevButton.addActionListener(e -> changeImage(-1));
-        nextButton.addActionListener(e -> changeImage(1));
-
-        JPanel imageButtonPanel = new JPanel();
-        imageButtonPanel.add(prevButton);
-        imageButtonPanel.add(nextButton);
-
-        imagePanel1.add(imageButtonPanel, BorderLayout.SOUTH);
-
         card1.add(labelPanel, BorderLayout.CENTER);
-        card1.add(imagePanel1, BorderLayout.WEST);
 
-        // 수정 화면 설정
+        return card1;
+    }
+
+    private JPanel createEditPanel() {
+        JPanel card2 = new JPanel(new BorderLayout());
+
         JPanel labelPanelEdit = new JPanel();
         labelPanelEdit.setLayout(new BoxLayout(labelPanelEdit, BoxLayout.Y_AXIS));
 
@@ -150,14 +111,9 @@ public class Userinfo implements ActionListener {
             user.setName(nameField.getText());
             user.setBirthdate(birthField.getText());
 
-            personalInfoModel.setValueAt(user.getId(), 0, 1);
-            personalInfoModel.setValueAt(user.getPassword(), 1, 1);
-            personalInfoModel.setValueAt(user.getName(), 2, 1);
-            personalInfoModel.setValueAt(user.getBirthdate(), 3, 1);
-
             // 기존 화면으로 돌아가기
-            CardLayout cardLayout = (CardLayout) mainPane.getLayout();
-            cardLayout.show(mainPane, "기존 화면");
+            CardLayout cardLayout = (CardLayout) getLayout();
+            cardLayout.show(this, "기존 화면");
         });
 
         labelPanelEdit.add(new JLabel("아이디:"));
@@ -168,31 +124,27 @@ public class Userinfo implements ActionListener {
         labelPanelEdit.add(nameField);
         labelPanelEdit.add(new JLabel("생일:"));
         labelPanelEdit.add(birthField);
+        labelPanelEdit.add(Box.createVerticalStrut(10));
         labelPanelEdit.add(updateButton);
 
         card2.add(labelPanelEdit, BorderLayout.CENTER);
 
-        // 카드 레이아웃에 두 카드 추가
-        mainPane.add(card1, "기존 화면");
-        mainPane.add(card2, "수정 화면");
-
-        return mainPane;
-    }
-    private void changeImage(int direction) {
-        currentImageIndex = (currentImageIndex + direction + imagePaths.length) % imagePaths.length;
-        ImageIcon originalIcon = new ImageIcon(imagePaths[currentImageIndex]);
-        Image scaledImage = originalIcon.getImage().getScaledInstance(250, 250, Image.SCALE_SMOOTH);
-        imageLabel.setIcon(new ImageIcon(scaledImage));
+        return card2;
     }
 
-    public static void main(String args[]) {
-        User user = new User("user1", "password123", "홍길동", "1990-01-01");
-        Userinfo userInfoPage = new Userinfo(user);
-        userInfoPage.startGUI();
+    private JTable createStyledTable(DefaultTableModel model) {
+        JTable table = new JTable(model);
+        Font tableFont = new Font("맑은 고딕", Font.PLAIN, 18);
+
+        table.setFont(tableFont);
+        table.setRowHeight(40);
+        table.getTableHeader().setFont(new Font("맑은 고딕", Font.BOLD, 20));
+
+        return table;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // TODO Auto-generated method stub
+        // 필요한 경우 구현
     }
 }
