@@ -15,345 +15,423 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.List;
 
 public class testpage extends JPanel {
-	private JLabel[][] reels;
-	private Timer timer;
-	private Random random;
-	private String[] symbolPaths = { "imgs/cherry.png", "imgs/lemon.png", "imgs/banana.png", "imgs/watermelon.png",
-			"imgs/golden-bell.png", "imgs/lucky 7.png", "imgs/singlebar.png" };
-	private ImageIcon[] symbolIcons;
-	private Map<String, ImageIcon> symbolImages;
-	private JLabel balanceLabel;
-	private JLabel totalLabel;
-	private JLabel clockLabel;
-	private int balance = 1000000;
-	private JComboBox<Integer> paylineSelector;
-	private Map<Integer, Double> paylineRTP; // 페이라인별 RTP 저장
-	private final Map<Integer, int[][]> paylines = new HashMap<>();
-	private int totalWinnings = 0;
+    private JLabel[][] reels;
+    private Timer timer;
+    private Random random;
+    private String[] symbolPaths = { "imgs/cherry.png", "imgs/lemon.png", "imgs/banana.png", "imgs/watermelon.png",
+            "imgs/golden-bell.png", "imgs/lucky 7.png"};
+    private ImageIcon[] symbolIcons;
+    private String[] sideBarImagePaths = { "imgs/payline1.png", "imgs/payline2.png", "imgs/payline3.png",
+            "imgs/payline4.png", "imgs/payline5.png", "imgs/payline6.png", "imgs/payline7.png", "imgs/payline8.png",
+            "imgs/payline9.png", "imgs/payline10.png", "imgs/coin.png" };
+    private JLabel balanceLabel;
+    private JLabel totalLabel;
+    private JLabel clockLabel;
+    private int balance = 1000000;
+    private JComboBox<Integer> paylineSelector;
+    private final Map<Integer, int[][]> paylines = new HashMap<>();
+    private int totalWinnings = 0;
+    private JLabel animatedMessageLabel;
+    private JLabel[] sideBarImageLabels;
 
-	private String currentUserId; // 로그인된 사용자 ID
-	private CardLayout cardLayout; // CardLayout 객체
-	private JPanel mainContainer; // mainContainer 객체
+    private String currentUserId;
+    private ScheduledExecutorService scheduler;
+    private static CardLayout cardLayout;
+    private static JPanel mainContainer;
 
-	// 생성자에서 로그인된 사용자 ID를 받아서 초기화
-	public testpage(String loggedInUserId, CardLayout cardLayout, JPanel mainContainer) {
-		this.currentUserId = loggedInUserId; // 로그인된 사용자 ID 초기화
-		this.cardLayout = cardLayout; // CardLayout 초기화
-		this.mainContainer = mainContainer; // mainContainer 초기화
-		initializeSymbols(); // 심볼 아이콘 초기화
-		initializePaylines();
+    public testpage(String loggedInUserId, CardLayout cardLayout, JPanel mainContainer) {
+        this.currentUserId = loggedInUserId;
+        this.cardLayout = cardLayout;
+        this.mainContainer = mainContainer;
+        initializePaylines();
+        initializeSymbols();
+        initializeSlotGame();
+    }
 
-		setSize(600, 400);
-		setLayout(new BorderLayout());
-		random = new Random();
+    public void initializeSlotGame() {
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(850, 800));
+        setBackground(new Color(18, 18, 18));
+        random = new Random();
 
-		// 페이라인별 RTP 값 초기화
-		paylineRTP = new HashMap<>();
-		paylineRTP.put(1, 0.9878); // 1라인 RTP를 높임
-		paylineRTP.put(3, 0.9788); // 3라인 RTP를 높임
-		paylineRTP.put(5, 0.9512); // 5라인 RTP를 높임
-		paylineRTP.put(7, 0.9482); // 7라인 RTP를 높임
-		paylineRTP.put(9, 0.922); // 9라인 RTP를 높임
-		paylineRTP.put(10, 0.8852); // 10라인 RTP를 높임
+        animatedMessageLabel = new JLabel("", SwingConstants.CENTER);
+        animatedMessageLabel.setFont(new Font("Monospaced", Font.BOLD, 24));
+        animatedMessageLabel.setForeground(new Color(255, 87, 34));
+        animatedMessageLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
+        animatedMessageLabel.setBackground(new Color(0, 0, 0, 150));
+        animatedMessageLabel.setOpaque(true);
+        animatedMessageLabel.setBounds(0, 300, 600, 60);
+        animatedMessageLabel.setVisible(false);
 
-		// 시계 라벨 초기화
-		clockLabel = new JLabel();
-		clockLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-		updateClock();
-		Timer clockTimer = new Timer(1000, e -> updateClock());
-		clockTimer.start();
+        Timer blinkTimer = new Timer(500, e -> animatedMessageLabel.setVisible(!animatedMessageLabel.isVisible()));
+        blinkTimer.setRepeats(true);
 
-		// 시계 표시 패널
-		JPanel topPanel = new JPanel(new BorderLayout());
-		totalLabel = new JLabel("누적 당첨 점수 : " + 0);
-		totalLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		topPanel.add(clockLabel, BorderLayout.WEST);
-		topPanel.add(totalLabel, BorderLayout.CENTER);
-		add(topPanel, BorderLayout.NORTH);
+        clockLabel = new JLabel();
+        clockLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        clockLabel.setForeground(Color.WHITE);
+        updateClock();
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(this::updateClock, 0, 1, TimeUnit.SECONDS);
 
-		// 슬롯 화면 패널
-		JPanel slotPanel = new JPanel();
-		slotPanel.setLayout(new GridLayout(4, 5));
-		reels = new JLabel[4][5];
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(18, 18, 18));
+        totalLabel = new JLabel("누적 당첨 점수 : " + 0);
+        totalLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        totalLabel.setFont(new Font("Monospaced", Font.PLAIN, 20));
+        totalLabel.setForeground(Color.WHITE);
+        topPanel.add(clockLabel, BorderLayout.WEST);
+        topPanel.add(totalLabel, BorderLayout.CENTER);
 
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 5; j++) {
-				reels[i][j] = new JLabel(symbolPaths[0], SwingConstants.CENTER);
-				reels[i][j].setFont(new Font("Arial", Font.PLAIN, 48));
-				slotPanel.add(reels[i][j]);
-			}
-		}
+        add(topPanel, BorderLayout.NORTH);
 
-		// 버튼과 정보 패널
-		JPanel controlPanel = new JPanel();
-		balanceLabel = new JLabel("Balance: " + balance + "점");
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+        layeredPane.setPreferredSize(new Dimension(850, 600));
+        add(layeredPane, BorderLayout.CENTER);
 
-		Integer[] paylines = { 1, 3, 5, 7, 9, 10 };
-		paylineSelector = new JComboBox<>(paylines);
+        JPanel slotPanel = new JPanel();
+        slotPanel.setLayout(new GridLayout(4, 5, 2, 2));
+        slotPanel.setBounds(0, 0, 600, 500);
+        slotPanel.setBackground(new Color(18, 18, 18));
+        layeredPane.add(slotPanel, Integer.valueOf(1));
+        reels = new JLabel[4][5];
 
-		JButton spinButton = new JButton("Spin");
-		spinButton.setPreferredSize(new Dimension(150, 50));
-		JButton endGameButton = new JButton("End Game");
+        for (int i = 0; i < 4; i++) {
+            int randomIndexForRow = random.nextInt(symbolIcons.length);
+            for (int j = 0; j < 5; j++) {
+                reels[i][j] = new JLabel(symbolIcons[randomIndexForRow], SwingConstants.CENTER);
+                reels[i][j].setPreferredSize(new Dimension(100, 100));
+                slotPanel.add(reels[i][j]);
+            }
+        }
 
-		controlPanel.add(totalLabel);
-		controlPanel.add(balanceLabel);
-		controlPanel.add(new JLabel("Paylines: "));
-		controlPanel.add(paylineSelector);
-		controlPanel.add(spinButton);
-		controlPanel.add(endGameButton);
+        layeredPane.add(animatedMessageLabel, Integer.valueOf(2));
 
-		spinButton.addActionListener(e -> startGame());
-		endGameButton.addActionListener(e -> endGame());
+        JPanel sideBar = new JPanel();
+        sideBar.setPreferredSize(new Dimension(150, 500));
+        sideBar.setBackground(new Color(34, 34, 34));
+        sideBar.setLayout(new BoxLayout(sideBar, BoxLayout.Y_AXIS));
 
-		add(slotPanel, BorderLayout.CENTER);
-		add(controlPanel, BorderLayout.SOUTH);
-	}
+        sideBarImageLabels = new JLabel[sideBarImagePaths.length];
 
-	private void initializeSymbols() {
-		symbolIcons = new ImageIcon[symbolPaths.length];
-		for (int i = 0; i < symbolPaths.length; i++) {
-			try {
-				ImageIcon originalIcon = new ImageIcon(symbolPaths[i]);
-				Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-				symbolIcons[i] = new ImageIcon(scaledImage);
-			} catch (Exception e) {
-				System.err.println("이미지 로드 실패: " + symbolPaths[i] + " - " + e.getMessage());
-				symbolIcons[i] = null; // 실패한 경우 null로 설정
-			}
-		}
-	}
+        for (int i = 0; i < sideBarImagePaths.length; i++) {
+            sideBarImageLabels[i] = new JLabel();
+            ImageIcon icon = new ImageIcon(sideBarImagePaths[i]);
+            Image scaledImage = icon.getImage().getScaledInstance(100, 50, Image.SCALE_SMOOTH);
+            icon = new ImageIcon(scaledImage);
+            sideBarImageLabels[i].setIcon(icon);
+            sideBarImageLabels[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            int index = i;
+            sideBarImageLabels[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (index == sideBarImagePaths.length - 1) { // 마지막 이미지는 칩 교환 버튼
+                        cardLayout.show(mainContainer, "ChipExchangePage");
+                    }
+                }
+            });
+            sideBar.add(sideBarImageLabels[i]);
+            sideBar.add(Box.createRigidArea(new Dimension(0, 5)));
+        }
 
-	private void initializePaylines() { // 페이라인 별 행령 당첨 모양
-		paylines.put(1, new int[][] { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 } });
-		paylines.put(2, new int[][] { { 3, 0 }, { 3, 1 }, { 3, 2 }, { 3, 3 }, { 3, 4 } });
-		paylines.put(3, new int[][] { { 1, 0 }, { 1, 1 }, { 1, 2 }, { 1, 3 }, { 1, 4 } });
-		paylines.put(4, new int[][] { { 2, 0 }, { 2, 1 }, { 2, 2 }, { 2, 3 }, { 2, 4 } });
-		paylines.put(5, new int[][] { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 1, 3 }, { 0, 4 } });
-		paylines.put(6, new int[][] { { 3, 0 }, { 2, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 } });
-		paylines.put(7, new int[][] { { 2, 0 }, { 1, 1 }, { 0, 2 }, { 1, 3 }, { 2, 4 } });
-		paylines.put(8, new int[][] { { 1, 0 }, { 2, 1 }, { 3, 2 }, { 2, 3 }, { 1, 4 } });
-		paylines.put(9, new int[][] { { 0, 0 }, { 1, 1 }, { 0, 2 }, { 1, 3 }, { 0, 4 } });
-		paylines.put(10, new int[][] { { 3, 0 }, { 2, 1 }, { 3, 2 }, { 2, 3 }, { 3, 4 } });
+        add(sideBar, BorderLayout.EAST);
 
-	}
+        JPanel controlPanel = new JPanel();
+        controlPanel.setBackground(new Color(18, 18, 18));
+        balanceLabel = new JLabel("Balance: " + balance + "점");
+        balanceLabel.setFont(new Font("Monospaced", Font.BOLD, 24));
+        balanceLabel.setForeground(Color.WHITE);
 
-	private void updateClock() {
-		SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-		clockLabel.setText("Current Time: " + formatter.format(new Date()));
-	}
+        Integer[] paylinesArray = { 1, 3, 5, 7, 9, 10 };
+        paylineSelector = new JComboBox<>(paylinesArray);
+        paylineSelector.setFont(new Font("Monospaced", Font.BOLD, 24));
+        paylineSelector.setBackground(new Color(34, 34, 34));
+        paylineSelector.setForeground(Color.WHITE);
+        paylineSelector.addActionListener(e -> updateSidebarHighlights());
 
-	private void startGame() { // 페이라인별로 차감되는 Balance를 다르게 설정
-		int selectedPayline = (Integer) paylineSelector.getSelectedItem(); // 선택된 페이라인 수
-		int deductionAmount = payLineDeduction(selectedPayline); // 페이라인에 따른 차감 포인트 계산
+        JButton spinButton = new JButton("Spin");
+        spinButton.setFont(new Font("Monospaced", Font.BOLD, 24));
+        spinButton.setBackground(new Color(255, 87, 34));
+        spinButton.setForeground(Color.WHITE);
+        JButton endGameButton = new JButton("End Game");
+        endGameButton.setFont(new Font("Monospaced", Font.BOLD, 24));
+        endGameButton.setBackground(new Color(255, 87, 34));
+        endGameButton.setForeground(Color.WHITE);
 
-		// 차감할 포인트가 현재 Balance보다 높으면 잔액 부족 메시지 출력
-		if (balance < deductionAmount) {
-			JOptionPane.showMessageDialog(this, "잔액이 부족합니다.");
-			return;
-		}
+        controlPanel.add(balanceLabel);
+        JLabel paylineLabel = new JLabel("Paylines: ");
+        paylineLabel.setFont(new Font("Monospaced", Font.BOLD, 24));
+        paylineLabel.setForeground(Color.WHITE);
+        controlPanel.add(paylineLabel);
+        controlPanel.add(paylineSelector);
+        controlPanel.add(spinButton);
+        controlPanel.add(endGameButton);
 
-		balance -= deductionAmount; // Balance에서 페이라인에 따라 차감
-		balanceLabel.setText("Balance: " + balance + "점");
-		startSpin();
-	}
+        spinButton.addActionListener(e -> {
+            startGame();
+            blinkTimer.start();
+        });
+        endGameButton.addActionListener(e -> endGame());
 
-	// 페이라인별로 차감할 포인트를 반환하는 메서드
-	int payLineDeduction(int payLine) {
-		switch (payLine) {
-		case 1:
-			return 10; // 페이라인 1의 차감 포인트
-		case 3:
-			return 30; // 페이라인 3의 차감 포인트
-		case 5:
-			return 50; // 페이라인 5의 차감 포인트
-		case 7:
-			return 70; // 페이라인 7의 차감 포인트
-		case 9:
-			return 90; // 페이라인 9의 차감 포인트
-		case 10:
-			return 100; // 페이라인 10의 차감 포인트
-		default:
-			return 10; // 기본 차감 포인트 (정의되지 않은 경우)
-		}
-	}
+        add(controlPanel, BorderLayout.SOUTH);
+    }
 
-	private void startSpin() {
-		resetBorders();
-		if (timer != null && timer.isRunning()) {
-			timer.stop();
-		}
+    private void initializeSymbols() {
+        symbolIcons = new ImageIcon[symbolPaths.length];
+        for (int i = 0; i < symbolPaths.length; i++) {
+            ImageIcon originalIcon = new ImageIcon(symbolPaths[i]);
+            Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            symbolIcons[i] = new ImageIcon(scaledImage);
+        }
+    }
 
-		timer = new Timer(100, new ActionListener() {
-			int ticks = 0;
+    private void updateSidebarHighlights() {
+        int selectedPayline = (Integer) paylineSelector.getSelectedItem();
+        for (int i = 0; i < sideBarImageLabels.length; i++) {
+            if (i < selectedPayline) {
+                sideBarImageLabels[i].setBorder(new LineBorder(new Color(255, 87, 34), 2));
+            } else {
+                sideBarImageLabels[i].setBorder(null);
+            }
+        }
+    }
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < 4; i++) {
-					for (int j = 0; j < 5; j++) {
-						int index = random.nextInt(symbolIcons.length);
-						if (symbolIcons[index] != null) {
-							reels[i][j].setIcon(symbolIcons[index]);
-						} else {
-							System.err.println("Null icon for index: " + index); // 디버깅 로그
-							reels[i][j].setIcon(new ImageIcon()); // 빈 아이콘 설정
-						}
-						reels[i][j].setText(null);
-					}
-				}
+    private void initializePaylines() {
+        paylines.put(1, new int[][] { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 } });
+        paylines.put(2, new int[][] { { 3, 0 }, { 3, 1 }, { 3, 2 }, { 3, 3 }, { 3, 4 } });
+        paylines.put(3, new int[][] { { 1, 0 }, { 1, 1 }, { 1, 2 }, { 1, 3 }, { 1, 4 } });
+        paylines.put(4, new int[][] { { 2, 0 }, { 2, 1 }, { 2, 2 }, { 2, 3 }, { 2, 4 } });
+        paylines.put(5, new int[][] { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 1, 3 }, { 0, 4 } });
+        paylines.put(6, new int[][] { { 3, 0 }, { 2, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 } });
+        paylines.put(7, new int[][] { { 2, 0 }, { 1, 1 }, { 0, 2 }, { 1, 3 }, { 2, 4 } });
+        paylines.put(8, new int[][] { { 1, 0 }, { 2, 1 }, { 3, 2 }, { 2, 3 }, { 1, 4 } });
+        paylines.put(9, new int[][] { { 0, 0 }, { 1, 1 }, { 0, 2 }, { 1, 3 }, { 0, 4 } });
+        paylines.put(10, new int[][] { { 3, 0 }, { 2, 1 }, { 3, 2 }, { 2, 3 }, { 3, 4 } });
+    }
 
-				ticks++;
-				if (ticks > 10) {
-					timer.stop();
-					checkWin();
-				}
-			}
-		});
+    private void updateClock() {
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+        clockLabel.setText("Current Time: " + formatter.format(new Date()));
+    }
 
-		timer.start();
-	}
+    private void startGame() {
+        int selectedPayline = (Integer) paylineSelector.getSelectedItem();
+        int deductionAmount = selectedPayline * 20; // 페이라인이 클수록 차감 금액이 증가
 
-	private void checkWin() {
-		int selectedPaylines = (Integer) paylineSelector.getSelectedItem(); // 선택된 페이라인 수
-		int winnings = 0;
-		int baseScore = 100; // 모든 페이라인에 대해 동일한 기본 점수
+        if (balance < deductionAmount) {
+            showAnimatedMessage("잔액이 부족합니다!");
+            return;
+        }
 
-		for (int line = 1; line <= selectedPaylines; line++) {
-			int[][] paylinePattern = paylines.get(line); // 해당 페이라인의 패턴 가져오기
+        balance -= deductionAmount;
+        balanceLabel.setText("Balance: " + balance + "점");
+        showAnimatedMessage("스핀 중입니다...");
+        startSpin();
+    }
 
-			if (paylinePattern != null && checkPaylineMatch(paylinePattern)) { // 패턴이 일치하면 당첨
-				highlightWin(paylinePattern); // 당첨된 페이라인 강조
+    private void showAnimatedMessage(String message) {
+        animatedMessageLabel.setText(message);
+        animatedMessageLabel.setVisible(true);
 
-				double multiplier = getMultiplier(selectedPaylines); // 선택된 페이라인 수에 따른 배수 계산
-				winnings += (int) (baseScore * multiplier); // 배수를 적용한 당첨 점수 계산
-			}
-		}
+        Timer hideTimer = new Timer(2000, e -> animatedMessageLabel.setVisible(false));
+        hideTimer.setRepeats(false);
+        hideTimer.start();
+    }
 
-		// 당첨이 있을 경우 점수 및 잔액 업데이트
-		if (winnings > 0) {
-			balance += winnings; // 당첨 점수 반영
-			totalWinnings += winnings; // 누적 당첨 점수 추가
-			JOptionPane.showMessageDialog(this, "당첨! " + winnings + "점 획득!");
-		} else {
-			JOptionPane.showMessageDialog(this, "아쉽게도 당첨되지 않았습니다.");
-		}
-		balanceLabel.setText("Balance: " + balance + "점"); // 잔액 라벨 업데이트
-		totalLabel.setText("누적 당첨 점수 : " + totalWinnings); // 누적 당첨 점수 업데이트
-	}
+    private void startSpin() {
+        resetBorders();
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
 
-	private double getMultiplier(int selectedPaylines) {
-		switch (selectedPaylines) {
-		case 1:
-			return 10.0;
-		case 3:
-			return 5.0;
-		case 5:
-			return 3.0;
-		case 7:
-			return 2.0;
-		case 9:
-			return 1.5;
-		case 10:
-			return 1.0;
-		default:
-			return 1.0;
-		}
-	}
+        timer = new Timer(100, new ActionListener() {
+            int ticks = 0;
 
-	// 페이라인 패턴이 맞는지 확인하는 메서드
-	private boolean checkPaylineMatch(int[][] paylinePattern) {
-		// 첫 번째 위치의 아이콘을 기준으로 비교
-		ImageIcon firstIcon = (ImageIcon) reels[paylinePattern[0][0]][paylinePattern[0][1]].getIcon();
-		if (firstIcon == null) {
-			return false; // 첫 번째 아이콘이 없으면 일치하지 않음
-		}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (int i = 0; i < 4; i++) {
+                    for (int j = 0; j < 5; j++) {
+                        int index = random.nextInt(symbolIcons.length);
+                        reels[i][j].setIcon(symbolIcons[index]);
+                    }
+                }
 
-		for (int[] pos : paylinePattern) {
-			ImageIcon currentIcon = (ImageIcon) reels[pos[0]][pos[1]].getIcon();
-			if (!firstIcon.equals(currentIcon)) {
-				return false; // 하나라도 다르면 false
-			}
-		}
-		return true; // 모두 같으면 true
-	}
+                ticks++;
+                if (ticks > 10) {
+                    timer.stop();
+                    checkWin();
+                }
+            }
+        });
 
-	private void highlightWin(int[][] positions) {
-		for (int[] pos : positions) {
-			reels[pos[0]][pos[1]].setBorder(new LineBorder(Color.RED, 3));
-		}
-	}
+        timer.start();
+    }
 
-	private void resetBorders() {
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 5; j++) {
-				reels[i][j].setBorder(null);
-			}
-		}
-	}
+    private void checkWin() {
+        int selectedPaylines = (Integer) paylineSelector.getSelectedItem();
+        int winnings = 0;
 
-	private void endGame() {
-		JOptionPane.showMessageDialog(this, "게임을 종료합니다.");
+        for (int line = 1; line <= selectedPaylines; line++) {
+            int[][] paylinePattern = paylines.get(line);
 
-		// 현재 사용자 정보를 읽어와서 누적 점수를 반영
-		List<userread> userData = readUserFile("user.txt");
+            if (paylinePattern != null && checkPaylineMatch(paylinePattern)) {
+                highlightWin(paylinePattern);
+                double multiplier = getMultiplier(selectedPaylines);
+                winnings += (int) (getBaseScoreForIcon(reels[paylinePattern[0][0]][paylinePattern[0][1]].getIcon())
+                        * multiplier);
+            }
+        }
 
-		// 로그인된 사용자 ID를 사용
-		String currentUserId = this.currentUserId; // 이미 로그인 시 전달된 currentUserId 사용
+        if (winnings > 0) {
+            balance += winnings;
+            totalWinnings += winnings;
+            balanceLabel.setText("Balance: " + balance + "점");
+            totalLabel.setText("누적 당첨 점수 : " + totalWinnings);
+            showAnimatedMessage("축하합니다! " + winnings + "점 획득!");
+        } else {
+            showAnimatedMessage("아쉽게도 당첨되지 않았습니다.");
+        }
+    }
 
-		boolean userFound = false;
-		for (userread user : userData) {
-			if (user.getId().equals(currentUserId)) {
-				user.setScore(user.getScore() + totalWinnings); // 누적 점수 추가
-				userFound = true;
-				break; // 해당 사용자만 업데이트하고 반복문 종료
-			}
-		}
+    private int getBaseScoreForIcon(Icon icon) {
+        for (int i = 0; i < symbolIcons.length; i++) {
+            if (symbolIcons[i].equals(icon)) {
+                return switch (i) {
+                    case 0 -> random.nextInt(5) + 1; // 체리: 1배에서 5배 사이의 점수
+                    case 1 -> random.nextInt(11) + 5; // 레몬: 5배에서 15배 사이의 점수
+                    case 2 -> random.nextInt(11) + 10; // 바나나: 10배에서 20배 사이의 점수
+                    case 3 -> random.nextInt(31) + 20; // 수박: 20배에서 50배 사이의 점수
+                    case 4 -> random.nextInt(71) + 30; // 황금 벨: 30배에서 100배 사이의 점수
+                    case 5 -> random.nextInt(451) + 50; // 행운의 숫자 7: 50배에서 500배 사이의 점수
+                    default -> 0;
+                };
+            }
+        }
+        return 0;
+    }
 
-		// 사용자가 발견되지 않았을 경우
-		 if (!userFound) {
-		        JOptionPane.showMessageDialog(this, "로그인된 사용자 정보를 찾을 수 없습니다.");
-		    } else {
-		        // 사용자 정보를 다시 파일에 저장
-		        writeUserFile(userData);
+    private double getMultiplier(int selectedPaylines) {
+        switch (selectedPaylines) {
+            case 1:
+                return 10.0;
+            case 3:
+                return 5.0;
+            case 5:
+                return 3.0;
+            case 7:
+                return 2.0;
+            case 9:
+                return 1.5;
+            case 10:
+                return 1.2;
+            default:
+                return 1.0;
+        }
+    }
 
-		        // Ranking 화면으로 이동 (카드레이아웃을 사용하여 전환)
-		        cardLayout.show(mainContainer, "Ranking"); // "RankingPage"는 다른 화면 이름
-		        totalWinnings = 0; // 누적 당첨 점수 초기화
-		    }
-		}
+    private boolean checkPaylineMatch(int[][] paylinePattern) {
+        ImageIcon firstIcon = (ImageIcon) reels[paylinePattern[0][0]][paylinePattern[0][1]].getIcon();
+        if (firstIcon == null) {
+            return false;
+        }
 
-	private List<userread> readUserFile(String filePath) {
-		List<userread> userData = new ArrayList<>();
+        for (int[] pos : paylinePattern) {
+            ImageIcon currentIcon = (ImageIcon) reels[pos[0]][pos[1]].getIcon();
+            if (!firstIcon.equals(currentIcon)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-		try (Scanner filein = new Scanner(new File(filePath))) {
-			while (filein.hasNext()) {
-				userread user = new userread();
-				user.read(filein);
-				userData.add(user);
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+    private void highlightWin(int[][] positions) {
+        for (int[] pos : positions) {
+            reels[pos[0]][pos[1]].setBorder(new LineBorder(Color.RED, 2));
+        }
+    }
 
-		return userData;
-	}
+    private void resetBorders() {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                reels[i][j].setBorder(null);
+            }
+        }
+    }
 
-	// 사용자 데이터를 파일에 저장하는 메서드
-	private void writeUserFile(List<userread> userData) {
-		try (PrintWriter writer = new PrintWriter(new File("user.txt"))) {
-			for (userread user : userData) {
-				writer.printf("%s %s %s %s %d\n", user.getId(), user.getPassword(), user.getName(), user.getBirthdate(),
-						user.getScore());
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
+    private void endGame() {
+        showAnimatedMessage("게임을 종료합니다.");
 
-	private void createSlotGame() {
-		setVisible(true);
-	}
+        List<userread> userData = readUserFile("user.txt");
+        String currentUserId = this.currentUserId;
 
+        boolean userFound = false;
+        for (userread user : userData) {
+            if (user.getId().equals(currentUserId)) {
+                user.setScore(user.getScore() + totalWinnings);
+                userFound = true;
+                break;
+            }
+        }
+
+        if (!userFound) {
+            showAnimatedMessage("사용자 정보를 찾을 수 없습니다.");
+        } else {
+            writeUserFile(userData);
+            cardLayout.show(mainContainer, "MainPage");
+            totalWinnings = 0;
+        }
+    }
+
+    private List<userread> readUserFile(String filePath) {
+        List<userread> userData = new ArrayList<>();
+
+        try (Scanner filein = new Scanner(new File(filePath))) {
+            while (filein.hasNext()) {
+                userread user = new userread();
+                user.read(filein);
+                userData.add(user);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return userData;
+    }
+
+    private void writeUserFile(List<userread> userData) {
+        try (PrintWriter writer = new PrintWriter(new File("user.txt"))) {
+            for (userread user : userData) {
+                writer.printf("%s %s %s %s %d\n", user.getId(), user.getPassword(), user.getName(), user.getBirthdate(),
+                        user.getScore());
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Slot Machine Test Page");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(1020, 960);
+
+            CardLayout cardLayout = new CardLayout();
+            JPanel mainContainer = new JPanel(cardLayout);
+
+            String loggedInUserId = "exampleUser";
+            testpage slotPanel = new testpage(loggedInUserId, cardLayout, mainContainer);
+            mainContainer.add(slotPanel, "testpage");
+
+            frame.add(mainContainer);
+            frame.setVisible(true);
+
+            cardLayout.show(mainContainer, "testpage");
+        });
+    }
 }
