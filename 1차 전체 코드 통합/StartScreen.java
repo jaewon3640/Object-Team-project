@@ -39,39 +39,44 @@ public class StartScreen extends JFrame {
         setVisible(true);
     }
 
-    // StartScreen 패널 생성
     private JPanel createStartPanel() {
-        JPanel startPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                setBackground(Color.BLACK);
+        JPanel startPanel = new JPanel(new GridBagLayout());
+        startPanel.setBackground(Color.BLACK); // 배경색 설정
 
-                g.setColor(Color.YELLOW);
-                g.setFont(new Font("Monospaced", Font.BOLD, 32));
-                g.drawString("SLOT_MACHINE", 75, 100);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(30, 0, 20, 0); // 간격 줄이기 (위아래 각각 10 픽셀)
+        gbc.gridx = 0; // 모든 컴포넌트를 중앙에 배치
+        gbc.anchor = GridBagConstraints.CENTER;
 
-                g.setFont(new Font("Monospaced", Font.BOLD, 18));
-                g.drawString("객체지향프로그래밍 7조", 85, 150);
+        // "SLOT_MACHINE" 제목
+        JLabel titleLabel = new JLabel("SLOT_MACHINE");
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 48)); // 글자 크기 키움
+        titleLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 0; // 첫 번째 행
+        startPanel.add(titleLabel, gbc);
 
-                g.setFont(new Font("Monospaced", Font.BOLD, 16));
-                g.drawString("HAVE A FUN 😊😊", 115, 240);
-            }
-        };
+        // 팀 정보
+        JLabel teamLabel = new JLabel("객체지향프로그래밍 7조");
+        teamLabel.setFont(new Font("Monospaced", Font.BOLD, 24)); // 글자 크기 키움
+        teamLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 1; // 두 번째 행
+        startPanel.add(teamLabel, gbc);
 
-        startPanel.setLayout(null);
+        // "HAVE A FUN 😊😊" 메시지
+        JLabel funLabel = new JLabel("HAVE A FUN 😊😊");
+        funLabel.setFont(new Font("Monospaced", Font.BOLD, 20)); // 글자 크기 키움
+        funLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 2; // 세 번째 행
+        startPanel.add(funLabel, gbc);
 
+        // "INSERT COIN" 버튼
         JButton startButton = new JButton("[INSERT COIN]");
-        startButton.setBounds(115, 280, 150, 40);
         startButton.setBackground(Color.BLACK);
         startButton.setForeground(Color.YELLOW);
-        startButton.setFont(new Font("Monospaced", Font.BOLD, 14));
+        startButton.setFont(new Font("Monospaced", Font.BOLD, 20)); // 버튼 글자 크기 키움
         startButton.setFocusPainted(false);
 
-        startButton.addActionListener(e -> {
-            cardLayout.show(mainPanel, "LoginPage");
-        });
-
+        // 버튼 깜빡임 효과
         Timer blinkTimer = new Timer(500, e -> {
             if (startButton.getForeground().equals(Color.YELLOW)) {
                 startButton.setForeground(Color.BLACK);
@@ -79,11 +84,19 @@ public class StartScreen extends JFrame {
                 startButton.setForeground(Color.YELLOW);
             }
         });
-
         blinkTimer.start();
-        startPanel.add(startButton);
+
+        startButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "LoginPage");
+        });
+
+        gbc.gridy = 3; // 네 번째 행
+        startPanel.add(startButton, gbc);
+
         return startPanel;
     }
+
+
 
     // LoginPage 생성
     private JPanel createLoginPanel() {
