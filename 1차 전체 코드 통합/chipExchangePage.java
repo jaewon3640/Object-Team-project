@@ -27,6 +27,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+
 // 생성자 하나로 통합
 public class chipExchangePage extends JPanel {
 	private JTextField txtmoney = new JTextField(15);
@@ -39,23 +40,43 @@ public class chipExchangePage extends JPanel {
 	private CardLayout cardLayout;
 	private JPanel mainContainer;
 	private Timer timer;
+	private ArrayList<Chip> chip = new ArrayList<>();
+	private Timer chipTimer;
+	private Image chipImage;
 	// 생성자 하나로 통합
 	public chipExchangePage(User user, CardLayout cardLayout, JPanel mainContainer) {
 		this.user = user;
 		this.cardLayout = cardLayout;
 		this.mainContainer = mainContainer;
+		chipImage = new ImageIcon("imgs/coin.png").getImage();
 		// 레이아웃 및 패널 설정
 		setLayout(null);
 		setBackground(Color.BLACK); // 기본 배경은 검정색으로 설정 (이미지가 그려질 부분)
 		
+		Random rand = new Random();
+		chipTimer = new Timer(50, e -> {
+			if (rand.nextInt(10) < 4) { 
+				int x = rand.nextInt(this.getWidth());
+				int y = rand.nextInt(this.getHeight());
+				chip.add(new Chip(x, y, chipImage)); 
+			}
+			Iterator<Chip> iterator = chip.iterator();
+			while (iterator.hasNext()) {
+				Chip chip = iterator.next();
+				if (!chip.update()) {
+					iterator.remove();
+				}
+			}
+			this.repaint();
+		});
 		// 라벨 추가
 		label = new JLabel("How much?:");
-		label.setBounds(300, 230, 100, 40);
+		label.setBounds(300, 330, 100, 40);
 		label.setForeground(Color.yellow);
 		label.setFont(new Font("Monospaced", Font.BOLD, 15));
 		
 		// 텍스트 필드 설정
-		txtmoney.setBounds(390, 242, 100, 40);
+		txtmoney.setBounds(390, 342, 100, 40);
 		txtmoney.setSize(80, 20);
 		txtmoney.setBackground(Color.BLACK);
 		txtmoney.setForeground(Color.CYAN);
@@ -86,7 +107,7 @@ public class chipExchangePage extends JPanel {
 
 		// 칩 교환 버튼 설정
 		excbutton = new JButton();
-		excbutton = createRetroButton("Exchange", 305, 300, 200, 50);
+		excbutton = createRetroButton("Exchange", 305, 400, 200, 50);
 		excbutton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -95,16 +116,16 @@ public class chipExchangePage extends JPanel {
 		});
 
 		// 뒤로가기 버튼 설정
-		backbutton = createRetroButton("back", 700, 550, 80, 30);
-		backbutton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				confirm.setVisible(false);
-				timer.stop();
-				cardLayout.show(mainContainer,"MainPage");
-			}
+		backbutton = createRetroButton("back", 700, 700, 80, 30);
+		backbutton.addActionListener(e->{
+			confirm.setVisible(false);
+			chip.clear();
+			chipTimer.stop();
+			this.repaint();
+			cardLayout.show(mainContainer,"MainPage");
 		});
+			
+			
 		// 구성 요소 추가
 		add(label);
 		add(confirm);
@@ -122,6 +143,9 @@ public class chipExchangePage extends JPanel {
 		g.setColor(Color.YELLOW);
 		g.setFont(new Font("Monospaced", Font.BOLD, 60));
 		g.drawString("Insert Money," + user.getName() + "!", 150, 100);
+		for (Chip c : chip) {
+			c.draw(g);
+		}
 
 	}
 	private void handleExchange() {
@@ -132,6 +156,7 @@ public class chipExchangePage extends JPanel {
 			if (result == JOptionPane.YES_OPTION) {
 				try {
 					confirm.setText(getChip() + " Chips Aquired!");
+					chipTimer.start();
 					confirm.setVisible(true);
 					timer.start();
 					user.setChipNum(user.getChipNum() + getChip());
@@ -187,6 +212,32 @@ public class chipExchangePage extends JPanel {
 			}
 		});
 		return button;
+	}
+	private static class Chip {
+		private int x, y, alpha;
+		private Image image;
+
+		public Chip(int x, int y, Image image) {
+			this.x = x;
+			this.y = y;
+			this.image = image;
+			this.alpha = 255;
+		}
+
+		public boolean update() {
+			y += 2;
+			alpha -= 10; 
+			return alpha > 0; 
+		}
+
+		public void draw(Graphics g) {
+			if (alpha > 0) {
+				Graphics2D g2d = (Graphics2D) g;
+				g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f)); 
+				g2d.drawImage(image, x, y, 80, 80, null);
+			}
+		}
+
 	}
 	
 	}
