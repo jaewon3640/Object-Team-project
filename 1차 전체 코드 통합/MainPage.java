@@ -20,8 +20,7 @@ public class MainPage extends JPanel {
 		this.mainPanel = mainPanel;
 
 		// 이미지 로드
-		// coinImage = new
-		// ImageIcon(getClass().getClassLoader().getResource("imgs/coin.png")).getImage();
+		coinImage = new ImageIcon("imgs/coin.png").getImage();
 
 		// 메인 화면 구성
 		setLayout(null);
@@ -47,23 +46,23 @@ public class MainPage extends JPanel {
 	// MainPage 클래스
 	private void createButtons() {
 		// SlotGame 버튼
-		JButton slotGameButton = createRetroButton("Slot Game", 300, 200);
+		JButton slotGameButton = createRetroButton("Slot Game", 320, 200);
 		slotGameButton.addActionListener(e -> cardLayout.show(mainPanel, "testpage"));
 
 		// ChipExchange 버튼
-		JButton chipExchangeButton = createRetroButton("Chip Exchange", 300, 280);
+		JButton chipExchangeButton = createRetroButton("Chip Exchange", 320, 280);
 		chipExchangeButton.addActionListener(e -> cardLayout.show(mainPanel, "ChipExchangePage"));
 
 		// Ranking 버튼
-		JButton rankingButton = createRetroButton("Ranking", 300, 360);
+		JButton rankingButton = createRetroButton("Ranking", 320, 360);
 		rankingButton.addActionListener(e -> cardLayout.show(mainPanel, "Ranking"));
 
 		// UserInfo 버튼
-		JButton userInfoButton = createRetroButton("User Info", 300, 440);
+		JButton userInfoButton = createRetroButton("User Info", 320, 440);
 		userInfoButton.addActionListener(e -> cardLayout.show(mainPanel, "UserInfoPage"));
 
 		// Exit 버튼
-		JButton exitButton = createRetroButton("Exit", 300, 520);
+		JButton exitButton = createRetroButton("Exit", 320, 520);
 		exitButton.addActionListener(e -> System.exit(0));
 
 		// 패널에 추가
@@ -100,29 +99,28 @@ public class MainPage extends JPanel {
 		return button;
 	}
 
-	// 불꽃놀이 애니메이션 시작
-	private void startFireworks() {
-		Random random = new Random();
-		fireworksTimer = new Timer(50, e -> {
-			if (random.nextInt(10) < 3) { // 30% 확률로 도트 생성
-				int x = random.nextInt(getWidth());
-				int y = random.nextInt(getHeight());
-				dots.add(new Dot(x, y));
-			}
+	 private void startFireworks() {
+	        Random random = new Random();
+	        fireworksTimer = new Timer(50, e -> {
+	            if (random.nextInt(10) < 3) { // 30% 확률로 도트 생성
+	                int x = random.nextInt(getWidth());
+	                int y = random.nextInt(getHeight());
+	                dots.add(new Dot(x, y, coinImage)); // 이미지 추가
+	            }
 
-			// 도트 업데이트
-			Iterator<Dot> iterator = dots.iterator();
-			while (iterator.hasNext()) {
-				Dot dot = iterator.next();
-				if (!dot.update()) {
-					iterator.remove(); // 수명이 다한 도트 제거
-				}
-			}
+	            // 도트 업데이트
+	            Iterator<Dot> iterator = dots.iterator();
+	            while (iterator.hasNext()) {
+	                Dot dot = iterator.next();
+	                if (!dot.update()) {
+	                    iterator.remove(); // 수명이 다한 도트 제거
+	                }
+	            }
 
-			repaint();
-		});
-		fireworksTimer.start();
-	}
+	            repaint();
+	        });
+	        fireworksTimer.start();
+	    }
 
 	@Override
 	protected void paintComponent(Graphics g) {
@@ -153,30 +151,31 @@ public class MainPage extends JPanel {
 
 	// 불꽃놀이 도트 클래스
 	private class Dot {
-		private int x, y, alpha;
+        private int x, y, alpha;
+        private Image image;
 
-		public Dot(int x, int y) {
-			this.x = x;
-			this.y = y;
-			this.alpha = 255;
-		}
+        public Dot(int x, int y, Image image) {
+            this.x = x;
+            this.y = y;
+            this.image = image;
+            this.alpha = 255;
+        }
 
-		public boolean update() {
-			y += 2;
-			alpha -= 10;
-			return alpha > 0;
-		}
+        public boolean update() {
+            y += 2;  // 아래로 이동
+            alpha -= 10;  // 투명도 감소
+            return alpha > 0;
+        }
 
-		public void draw(Graphics g) {
-			if (alpha > 0) {
-				Graphics2D g2d = (Graphics2D) g;
-				g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
-				g2d.setColor(Color.YELLOW);
-				g2d.fillOval(x, y, 10, 10);
-			}
-		}
-	}
+        public void draw(Graphics g) {
+            if (alpha > 0) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f)); // 투명도 적용
+                g2d.drawImage(image, x, y, 20, 20, null); // 코인 이미지 크기 설정
+            }
+        }
 
+}
 	
 
 }

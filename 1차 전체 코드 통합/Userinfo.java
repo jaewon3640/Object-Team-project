@@ -5,161 +5,200 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class Userinfo extends JPanel implements ActionListener {
-    private User user;  // User 객체
-    private  DefaultTableModel statsModel;
-    private  JTable statsTable ;
-    
-  
+public class Userinfo extends JPanel {
+    private User user;
+    private CardLayout cardLayout;
+    private JLabel chipsLabel; // 칩 레이블
 
-	public Userinfo(User user) {
-        this.user = user;  // 생성자에서 User 객체를 전달받음
-        setupUI();
+    public Userinfo(User user) {
+        this.user = user;
+        cardLayout = new CardLayout();
+        setLayout(cardLayout);
+
+        // 칩 레이블 초기화
+        chipsLabel = createInfoLabel("Chips: " + user.getChipNum());
+
+        // 정보 화면과 수정 화면 추가
+        add(createInfoPanel(), "InfoPanel");
+        add(createEditPanel(), "EditPanel");
+        cardLayout.show(this, "InfoPanel");
     }
 
-    private void setupUI() {
-        setLayout(new CardLayout());
-
-        // 첫 번째 카드: 기본 정보 화면
-        JPanel card1 = createInfoPanel();
-
-        // 두 번째 카드: 수정 화면
-        JPanel card2 = createEditPanel();
-
-        // 카드 추가
-        add(card1, "기존 화면");
-        add(card2, "수정 화면");
+    // 칩 레이블 업데이트 메서드
+    public void updateChipLabel(int newChipCount) {
+        user.setChipNum(newChipCount);
+        chipsLabel.setText("Chips: " + newChipCount);
     }
 
     private JPanel createInfoPanel() {
-        JPanel card1 = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.BLACK);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 기본 정보 테이블
-        String[] personalInfoColumns = {"항목", "정보"};
-        Object[][] personalInfoData = {
-            {"아이디", user.getId()},
-            {"비밀번호", user.getPassword()},
-            {"이름", user.getName()},
-            {"생일", user.getBirthdate()}
-        };
+        // 타이틀
+        JLabel titleLabel = new JLabel("USER INFORMATION", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 40));
+        titleLabel.setForeground(Color.YELLOW);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(titleLabel, gbc);
 
-        DefaultTableModel personalInfoModel = new DefaultTableModel(personalInfoData, personalInfoColumns);
-        JTable personalInfoTable = createStyledTable(personalInfoModel);
+        // 사용자 정보
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        panel.add(createInfoLabel("ID: " + user.getId()), gbc);
 
-        // 승률 및 통계 테이블
-        String[] statsColumns = {"항목", "정보"};
-        Object[][] statsData = {
-            {"승률", "100%"},
-            {"금액", "1000"},
-            {"환전한 칩 개수",0}
-        };
+        gbc.gridy = 2;
+        panel.add(createInfoLabel("Name: " + user.getName()), gbc);
 
-         statsModel = new DefaultTableModel(statsData, statsColumns);
-         statsTable = createStyledTable(statsModel);
+        gbc.gridy = 3;
+        panel.add(createInfoLabel("Birthdate: " + user.getBirthdate()), gbc);
 
-        // 스크롤 팬으로 테이블 감싸기
-        JScrollPane personalInfoScrollPane = new JScrollPane(personalInfoTable);
-        JScrollPane statsScrollPane = new JScrollPane(statsTable);
+        gbc.gridy = 4;
+        panel.add(chipsLabel, gbc); // 칩 레이블을 추가
 
         // 버튼
-        JButton editButton = new JButton("수정");
-        JButton exitButton = new JButton("나가기");
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
 
-        editButton.addActionListener(e -> {
-            CardLayout cardLayout = (CardLayout) getLayout();
-            cardLayout.show(this, "수정 화면");
+        JButton editButton = createRetroButton("Edit");
+        editButton.addActionListener(e -> cardLayout.show(this, "EditPanel"));
+        panel.add(editButton, gbc);
+
+        gbc.gridx = 1;
+        JButton backButton = createRetroButton("Back");
+        backButton.addActionListener(e -> {
+            CardLayout layout = (CardLayout) getParent().getLayout();
+            layout.show(getParent(), "MainPage");
         });
+        panel.add(backButton, gbc);
 
-        exitButton.addActionListener(e -> {
-            // 메인 페이지로 돌아가기 (MainPage에서 관리되도록 수정)
-            CardLayout cardLayout = (CardLayout) getParent().getLayout();
-            cardLayout.show(getParent(), "MainPage"); // MainPage로 돌아가기
-        });
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-        buttonPanel.add(editButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
-        buttonPanel.add(exitButton);
-
-        // 카드 구성
-        JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
-        labelPanel.add(personalInfoScrollPane);
-        labelPanel.add(Box.createVerticalStrut(10));
-        labelPanel.add(statsScrollPane);
-        labelPanel.add(Box.createVerticalStrut(10));
-        labelPanel.add(buttonPanel);
-
-        card1.add(labelPanel, BorderLayout.CENTER);
-
-        return card1;
+        return panel;
     }
 
+    // 수정 화면
     private JPanel createEditPanel() {
-        JPanel card2 = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.BLACK);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JPanel labelPanelEdit = new JPanel();
-        labelPanelEdit.setLayout(new BoxLayout(labelPanelEdit, BoxLayout.Y_AXIS));
+        // 타이틀
+        JLabel titleLabel = new JLabel("EDIT INFORMATION", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 30));
+        titleLabel.setForeground(Color.YELLOW);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(titleLabel, gbc);
 
-        JTextField idField = new JTextField(user.getId(), 10);
-        JTextField passwordField = new JTextField(user.getPassword(), 10);
-        JTextField nameField = new JTextField(user.getName(), 10);
-        JTextField birthField = new JTextField(user.getBirthdate(), 10);
+        // 수정 입력 필드
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        panel.add(createEditLabel("ID:"), gbc);
 
-        JButton updateButton = new JButton("수정 완료");
-        updateButton.addActionListener(e -> {
-            // 수정된 값 반영
+        gbc.gridx = 1;
+        JTextField idField = createEditField(user.getId());
+        panel.add(idField, gbc);
+
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        panel.add(createEditLabel("Name:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField nameField = createEditField(user.getName());
+        panel.add(nameField, gbc);
+
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        panel.add(createEditLabel("Birthdate:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField birthField = createEditField(user.getBirthdate());
+        panel.add(birthField, gbc);
+
+        // 칩 수는 수정 불가능
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        panel.add(createEditLabel("Chips:"), gbc);
+
+        gbc.gridx = 1;
+        JLabel chipsLabel = createInfoLabel(String.valueOf(user.getChipNum()));
+        panel.add(chipsLabel, gbc);
+
+        // 버튼
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+
+        JButton saveButton = createRetroButton("Save");
+        saveButton.addActionListener(e -> {
             user.setId(idField.getText());
-            user.setPassword(passwordField.getText());
             user.setName(nameField.getText());
             user.setBirthdate(birthField.getText());
-
-            // 기존 화면으로 돌아가기
-            CardLayout cardLayout = (CardLayout) getLayout();
-            cardLayout.show(this, "기존 화면");
+            JOptionPane.showMessageDialog(this, "Information successfully updated!");
+            cardLayout.show(this, "InfoPanel");
         });
+        panel.add(saveButton, gbc);
 
-        labelPanelEdit.add(new JLabel("아이디:"));
-        labelPanelEdit.add(idField);
-        labelPanelEdit.add(new JLabel("비밀번호:"));
-        labelPanelEdit.add(passwordField);
-        labelPanelEdit.add(new JLabel("이름:"));
-        labelPanelEdit.add(nameField);
-        labelPanelEdit.add(new JLabel("생일:"));
-        labelPanelEdit.add(birthField);
-        labelPanelEdit.add(Box.createVerticalStrut(10));
-        labelPanelEdit.add(updateButton);
+        gbc.gridx = 1;
+        JButton cancelButton = createRetroButton("Cancel");
+        cancelButton.addActionListener(e -> cardLayout.show(this, "InfoPanel"));
+        panel.add(cancelButton, gbc);
 
-        card2.add(labelPanelEdit, BorderLayout.CENTER);
-
-        return card2;
+        return panel;
     }
 
-    private JTable createStyledTable(DefaultTableModel model) {
-        JTable table = new JTable(model);
-        Font tableFont = new Font("맑은 고딕", Font.PLAIN, 18);
-
-        table.setFont(tableFont);
-        table.setRowHeight(40);
-        table.getTableHeader().setFont(new Font("맑은 고딕", Font.BOLD, 20));
-
-        return table;
+    private JLabel createInfoLabel(String text) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setFont(new Font("Monospaced", Font.BOLD, 20));
+        label.setForeground(Color.YELLOW);
+        return label;
     }
 
-    public void updateTableData(int row, int column, Object newValue) {
-        statsModel.setValueAt(newValue, row, column);
+    private JLabel createEditLabel(String text) {
+        JLabel label = new JLabel(text, SwingConstants.RIGHT);
+        label.setFont(new Font("Monospaced", Font.BOLD, 20));
+        label.setForeground(Color.YELLOW);
+        return label;
     }
 
-    public JTable getTable() {
-        return statsTable;
+    private JTextField createEditField(String text) {
+        JTextField field = new JTextField(text);
+        field.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        field.setBackground(Color.BLACK);
+        field.setForeground(Color.WHITE);
+        field.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
+        return field;
     }
 
-    public DefaultTableModel getTableModel() {
-        return statsModel;
-    }
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // 필요한 경우 구현
+    private JButton createRetroButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Monospaced", Font.BOLD, 16));
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.YELLOW);
+        button.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(Color.YELLOW);
+                button.setForeground(Color.BLACK);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(Color.BLACK);
+                button.setForeground(Color.YELLOW);
+            }
+        });
+        return button;
     }
 }
