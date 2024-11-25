@@ -5,7 +5,7 @@ public class User {
     private String password;
     private String name;
     private String birthdate;
-    private int chipNum=0;
+    private int chipNum = 0;
     
 
     public User(String id, String password, String name, String birthdate) {
