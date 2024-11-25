@@ -43,11 +43,13 @@ public class chipExchangePage extends JPanel {
 	private ArrayList<Chip> chip = new ArrayList<>();
 	private Timer chipTimer;
 	private Image chipImage;
+	private Userinfo userInfoPage;
 	// 생성자 하나로 통합
-	public chipExchangePage(User user, CardLayout cardLayout, JPanel mainContainer) {
+	public chipExchangePage(User user, CardLayout cardLayout, JPanel mainContainer,Userinfo userInfoPage) {
 		this.user = user;
 		this.cardLayout = cardLayout;
 		this.mainContainer = mainContainer;
+		this.userInfoPage=userInfoPage;
 		chipImage = new ImageIcon("imgs/coin.png").getImage();
 		// 레이아웃 및 패널 설정
 		setLayout(null);
@@ -160,6 +162,8 @@ public class chipExchangePage extends JPanel {
 					confirm.setVisible(true);
 					timer.start();
 					user.setChipNum(user.getChipNum() + getChip());
+					userInfoPage.updateTableData(2, 1, user.getChipNum());
+					//userInfoPage.repaint();
 					txtmoney.setText("");
 				} catch (NumberFormatException n) {
 					JLabel label = new JLabel("Exceeded maximum money amount");
@@ -241,4 +245,12 @@ public class chipExchangePage extends JPanel {
 	}
 	
 	}
+
+
+
+
+
+
+
+
 
