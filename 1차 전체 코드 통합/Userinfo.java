@@ -7,8 +7,12 @@ import java.awt.event.*;
 
 public class Userinfo extends JPanel implements ActionListener {
     private User user;  // User 객체
+    private  DefaultTableModel statsModel;
+    private  JTable statsTable ;
+    
+  
 
-    public Userinfo(User user) {
+	public Userinfo(User user) {
         this.user = user;  // 생성자에서 User 객체를 전달받음
         setupUI();
     }
@@ -47,11 +51,11 @@ public class Userinfo extends JPanel implements ActionListener {
         Object[][] statsData = {
             {"승률", "100%"},
             {"금액", "1000"},
-            {"환전한 칩 개수", user.getChipNum()}
+            {"환전한 칩 개수",0}
         };
 
-        DefaultTableModel statsModel = new DefaultTableModel(statsData, statsColumns);
-        JTable statsTable = createStyledTable(statsModel);
+         statsModel = new DefaultTableModel(statsData, statsColumns);
+         statsTable = createStyledTable(statsModel);
 
         // 스크롤 팬으로 테이블 감싸기
         JScrollPane personalInfoScrollPane = new JScrollPane(personalInfoTable);
@@ -143,6 +147,17 @@ public class Userinfo extends JPanel implements ActionListener {
         return table;
     }
 
+    public void updateTableData(int row, int column, Object newValue) {
+        statsModel.setValueAt(newValue, row, column);
+    }
+
+    public JTable getTable() {
+        return statsTable;
+    }
+
+    public DefaultTableModel getTableModel() {
+        return statsModel;
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
         // 필요한 경우 구현
