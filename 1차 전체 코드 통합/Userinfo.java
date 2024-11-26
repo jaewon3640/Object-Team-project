@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 
 public class Userinfo extends JPanel {
     private User user;
@@ -141,11 +142,21 @@ public class Userinfo extends JPanel {
 
         JButton saveButton = createRetroButton("Save");
         saveButton.addActionListener(e -> {
+            // 사용자 객체 업데이트
             user.setId(idField.getText());
             user.setName(nameField.getText());
             user.setBirthdate(birthField.getText());
-            JOptionPane.showMessageDialog(this, "Information successfully updated!");
+
+            // 파일에 저장
+            saveUserToFile();
+
+            // 정보 패널 갱신
+            removeAll(); // 기존 패널 제거
+            add(createInfoPanel(), "InfoPanel");
+            add(createEditPanel(), "EditPanel");
             cardLayout.show(this, "InfoPanel");
+
+            JOptionPane.showMessageDialog(this, "Information successfully updated!");
         });
         panel.add(saveButton, gbc);
 
@@ -200,5 +211,52 @@ public class Userinfo extends JPanel {
             }
         });
         return button;
+    }
+
+    private void saveUserToFile() {
+        File inputFile = new File("user.txt");  // 파일 경로를 확인하세요
+        StringBuilder updatedContent = new StringBuilder();
+        boolean isUpdated = false;
+
+        // 파일을 읽어 기존 내용을 수정
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+
+            // 파일의 각 줄을 확인하여 수정할 내용 찾기
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split("\\s+");
+
+                if (fields.length >= 5 && fields[0].trim().equals(user.getId())) {
+                    // ID가 동일하면 사용자 정보를 갱신
+                    updatedContent.append(user.getId()).append(" ")
+                                  .append(user.getPassword()).append(" ") // 비밀번호 갱신
+                                  .append(user.getName()).append(" ")
+                                  .append(user.getBirthdate()).append(" ")
+                                  .append(fields[4].trim())  // 기존 칩 개수 유지
+                                  .append(System.lineSeparator());
+                    isUpdated = true;
+                } else {
+                    // 수정 대상이 아니면 기존 데이터를 그대로 유지
+                    updatedContent.append(line).append(System.lineSeparator());
+                }
+            }
+
+            if (!isUpdated) {
+                JOptionPane.showMessageDialog(this, "ID not found. Update failed.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to read user data from file.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 수정된 내용을 user.txt에 덮어쓰기
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile))) {
+            writer.write(updatedContent.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to save user data.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
