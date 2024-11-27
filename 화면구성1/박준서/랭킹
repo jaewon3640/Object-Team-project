@@ -20,9 +20,9 @@ public class Ranking extends JPanel {
 
         // 상단 제목 추가
         JLabel titleLabel = new JLabel("Ranking", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 40)); // 폰트를 Monospaced로 설정
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 42)); // 폰트를 Monospaced로 설정
         titleLabel.setForeground(Color.YELLOW); // 글씨 색을 노란색으로 설정
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0)); // 여백 추가
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(27, 0, 27, 0)); // 여백 추가
 
         // User.txt 데이터를 읽어와 JTable에 표시
         String[] columnNames = {"RANKING", "ID", "NAME", "BIRTHDATE", "SCORE"};
@@ -47,7 +47,7 @@ public class Ranking extends JPanel {
 
         // 테이블의 폰트와 행 높이 설정
         userTable.setFont(new Font("Monospaced", Font.PLAIN, 14)); // 폰트를 Monospaced로 설정
-        userTable.setRowHeight(25);
+        userTable.setRowHeight(30);
         userTable.setForeground(Color.YELLOW); // 글씨 색을 노란색으로 설정
         userTable.setBackground(Color.BLACK); // 테이블 배경을 검정색으로 설정
 
@@ -57,6 +57,8 @@ public class Ranking extends JPanel {
         tableHeader.setForeground(Color.YELLOW); // 헤더 글씨 색을 노란색으로 설정
         tableHeader.setFont(new Font("Monospaced", Font.BOLD, 14)); // 헤더 폰트 설정
 
+        tableHeader.setPreferredSize(new Dimension(tableHeader.getPreferredSize().width, 50));
+
         // 셀 렌더러 설정
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
         cellRenderer.setBackground(Color.BLACK);
@@ -65,6 +67,10 @@ public class Ranking extends JPanel {
         for (int i = 0; i < userTable.getColumnCount(); i++) {
             userTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
+
+        // 테이블 그리드 선을 보이도록 설정, 그리드 색상을 투명하게 설정
+        userTable.setShowGrid(true); // 그리드(셀 경계선) 보이게 설정
+        userTable.setGridColor(new Color(0, 0, 0, 0)); // 그리드 색상을 투명하게 설정
 
         // 테이블을 스크롤 패널에 추가
         JScrollPane scrollPane = new JScrollPane(userTable);
