@@ -100,53 +100,64 @@ public class StartScreen extends JFrame {
 
     // LoginPage 생성
     private JPanel createLoginPanel() {
-        JPanel loginPanel = new JPanel(null); // 절대 배치 사용
-        loginPanel.setBackground(Color.BLACK);
+        JPanel loginPanel = new JPanel(new GridBagLayout()); // GridBagLayout으로 변경
+        loginPanel.setBackground(Color.BLACK); // 배경색 유지
 
-        // "LOGIN" 제목
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 0, 10, 0); // 위아래 간격 설정
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // 타이틀 추가
         JLabel titleLabel = new JLabel("LOGIN");
-        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 40));
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 50));
         titleLabel.setForeground(Color.YELLOW);
-        titleLabel.setBounds(275, 100, 300, 50); // 위치와 크기 설정
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        loginPanel.add(titleLabel);
+        gbc.gridy = 0; // 첫 번째 행
+        loginPanel.add(titleLabel, gbc);
 
-        // 아이디 레이블
+        // 시각적 장식 추가
+        JLabel separatorLabel = new JLabel("━━━━━━━━━━━━━━━━━━━━━━");
+        separatorLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
+        separatorLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 1;
+        loginPanel.add(separatorLabel, gbc);
+
+        // 아이디 필드
         JLabel usernameLabel = new JLabel("아이디:");
         usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
         usernameLabel.setForeground(Color.YELLOW);
-        usernameLabel.setBounds(250, 200, 100, 30);
-        loginPanel.add(usernameLabel);
+        gbc.gridy = 2;
+        loginPanel.add(usernameLabel, gbc);
 
-        // 아이디 입력 필드
-        JTextField usernameField = new JTextField();
+        JTextField usernameField = new JTextField(15);
         usernameField.setFont(new Font("Monospaced", Font.PLAIN, 20));
-        usernameField.setBounds(350, 200, 200, 30);
-        loginPanel.add(usernameField);
+        gbc.gridy = 3;
+        loginPanel.add(usernameField, gbc);
 
-        // 비밀번호 레이블
+        // 비밀번호 필드
         JLabel passwordLabel = new JLabel("비밀번호:");
         passwordLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
         passwordLabel.setForeground(Color.YELLOW);
-        passwordLabel.setBounds(250, 260, 100, 30);
-        loginPanel.add(passwordLabel);
+        gbc.gridy = 4;
+        loginPanel.add(passwordLabel, gbc);
 
-        // 비밀번호 입력 필드
-        JPasswordField passwordField = new JPasswordField();
+        JPasswordField passwordField = new JPasswordField(15);
         passwordField.setFont(new Font("Monospaced", Font.PLAIN, 20));
-        passwordField.setBounds(350, 260, 200, 30);
-        loginPanel.add(passwordField);
+        gbc.gridy = 5;
+        loginPanel.add(passwordField, gbc);
 
-        // 메시지 레이블 (로그인 실패 시 출력)
+        // 메시지 레이블
         JLabel messageLabel = new JLabel("");
         messageLabel.setForeground(Color.RED);
         messageLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
-        messageLabel.setBounds(250, 320, 300, 30);
-        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        loginPanel.add(messageLabel);
+        gbc.gridy = 6;
+        loginPanel.add(messageLabel, gbc);
 
-        // 로그인 버튼
-        JButton loginButton = createRetroButton("로그인", 250, 380);
+        // 버튼 추가
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        buttonPanel.setOpaque(false);
+
+        JButton loginButton = createRetroButton("로그인", 0, 0);
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
@@ -160,15 +171,18 @@ public class StartScreen extends JFrame {
                 messageLabel.setText("로그인 실패, 다시 시도하세요.");
             }
         });
-        loginPanel.add(loginButton);
+        buttonPanel.add(loginButton);
 
-        // 회원가입 버튼
-        JButton signUpButton = createRetroButton("회원가입", 470, 380);
+        JButton signUpButton = createRetroButton("회원가입", 0, 0);
         signUpButton.addActionListener(e -> handleSignUp());
-        loginPanel.add(signUpButton);
+        buttonPanel.add(signUpButton);
+
+        gbc.gridy = 7;
+        loginPanel.add(buttonPanel, gbc);
 
         return loginPanel;
     }
+
 
     // 레트로 버튼 스타일 메서드 재사용
     private JButton createRetroButton(String text, int x, int y) {
