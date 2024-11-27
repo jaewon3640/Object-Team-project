@@ -47,7 +47,7 @@ public class Ranking extends JPanel {
 
         // 테이블의 폰트와 행 높이 설정
         userTable.setFont(new Font("Monospaced", Font.PLAIN, 14)); // 폰트를 Monospaced로 설정
-        userTable.setRowHeight(30);
+        userTable.setRowHeight(45); // 셀의 세로 길이를 약간 늘림 (기존 30 -> 35)
         userTable.setForeground(Color.YELLOW); // 글씨 색을 노란색으로 설정
         userTable.setBackground(Color.BLACK); // 테이블 배경을 검정색으로 설정
 
