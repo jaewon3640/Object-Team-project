@@ -1,8 +1,9 @@
 package united;
 
+import javax.sound.sampled.*;
+
 import javax.swing.*;
 import javax.swing.Timer;
-
 import java.awt.*;
 import java.io.*;
 import java.util.*;
@@ -87,6 +88,7 @@ public class StartScreen extends JFrame {
         blinkTimer.start();
 
         startButton.addActionListener(e -> {
+            playSound("coinSound.wav"); // 버튼 클릭 시 사운드 재생
             cardLayout.show(mainPanel, "LoginPage");
         });
 
@@ -96,107 +98,137 @@ public class StartScreen extends JFrame {
         return startPanel;
     }
 
+    private void playSound(String soundFile) {
+        try {
+            File audioFile = new File(soundFile);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // LoginPage 생성
     private JPanel createLoginPanel() {
-        JPanel loginPanel = new JPanel(new GridBagLayout()) {
-            // 배경 이미지를 JPanel에 그리기 위한 오버라이드
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                try {
-                    // 배경 이미지 로드
-                    ImageIcon backgroundIcon = new ImageIcon("imgs/mainIMG.png"); // 이미지 파일 경로
-                    Image backgroundImage = backgroundIcon.getImage();
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);  // 이미지를 JPanel 크기에 맞게 그리기
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        loginPanel.setOpaque(false);  // 배경 이미지가 보이도록 패널의 배경을 투명으로 설정
+        JPanel loginPanel = new JPanel(new GridBagLayout()); // GridBagLayout으로 변경
+        loginPanel.setBackground(Color.BLACK); // 배경색 유지
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        JTextField usernameField = new JTextField(15);
-        JPasswordField passwordField = new JPasswordField(15);
-        JLabel messageLabel = new JLabel();
-        messageLabel.setForeground(Color.RED);  // 빨간색으로 설정
-        messageLabel.setPreferredSize(new Dimension(200, 25));
-        messageLabel.setHorizontalAlignment(SwingConstants.LEFT);  // 좌측 정렬
-
-        JButton loginButton = new JButton("로그인");
-        JButton signUpButton = new JButton("회원가입");
-
-        JLabel usernameLabel = new JLabel("아이디 :");
-        usernameLabel.setFont(new Font("Serif", Font.PLAIN, 15));
-        usernameLabel.setForeground(Color.WHITE);
-
-        JLabel passwordLabel = new JLabel("비밀번호 :");
-        passwordLabel.setFont(new Font("Serif", Font.PLAIN, 15));
-        passwordLabel.setForeground(Color.WHITE);
-
+        gbc.insets = new Insets(10, 0, 10, 0); // 위아래 간격 설정
         gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // 타이틀 추가
+        JLabel titleLabel = new JLabel("LOGIN");
+        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 50));
+        titleLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 0; // 첫 번째 행
+        loginPanel.add(titleLabel, gbc);
+
+        // 시각적 장식 추가
+        JLabel separatorLabel = new JLabel("━━━━━━━━━━━━━━━━━━━━━━");
+        separatorLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
+        separatorLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 1;
+        loginPanel.add(separatorLabel, gbc);
+
+        // 아이디 필드
+        JLabel usernameLabel = new JLabel("아이디:");
+        usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
+        usernameLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 2;
         loginPanel.add(usernameLabel, gbc);
 
-        gbc.gridy = 6;
+        JTextField usernameField = new JTextField(15);
+        usernameField.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        gbc.gridy = 3;
         loginPanel.add(usernameField, gbc);
 
-        gbc.gridy = 7;
+        // 비밀번호 필드
+        JLabel passwordLabel = new JLabel("비밀번호:");
+        passwordLabel.setFont(new Font("Monospaced", Font.BOLD, 20));
+        passwordLabel.setForeground(Color.YELLOW);
+        gbc.gridy = 4;
         loginPanel.add(passwordLabel, gbc);
 
-        gbc.gridy = 8;
-        gbc.gridwidth = 2;
+        JPasswordField passwordField = new JPasswordField(15);
+        passwordField.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        gbc.gridy = 5;
         loginPanel.add(passwordField, gbc);
 
-        // 오류 메시지 출력
-        gbc.gridy = 9;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.WEST;  // 좌측 정렬
+        // 메시지 레이블
+        JLabel messageLabel = new JLabel("");
+        messageLabel.setForeground(Color.RED);
+        messageLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+        gbc.gridy = 6;
         loginPanel.add(messageLabel, gbc);
 
-        gbc.gridy = 10;
-        gbc.gridx = 0;
-        gbc.gridwidth = 1;
-        loginPanel.add(loginButton, gbc);
+        // 버튼 추가
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        buttonPanel.setOpaque(false);
 
-        gbc.gridx = 1;
-        loginPanel.add(signUpButton, gbc);
-
+        JButton loginButton = createRetroButton("로그인", 0, 0);
+        // 로그인 버튼에 대한 이벤트 리스너 수정
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
+            User user = readUserFromFile("user.txt", username, password);
+            if (user != null) {
+                // 로그인 성공 시 WAV 소리 재생
+                playSound("loginSound.wav");
 
-            // 메시지 초기화
-            messageLabel.setText("");  // 이전 메시지 초기화
+                // 로그인 성공 메시지
+                JOptionPane.showMessageDialog(null, "로그인 성공! 게임 메인 페이지로 이동합니다.");
 
-            if (username.isEmpty() || password.isEmpty()) {
-                messageLabel.setText("아이디, 비밀번호를 입력하세요.");  // 빈 칸일 경우
+                // MainPage로 이동
+                MainPage mainPage = new MainPage(user, cardLayout, mainPanel);
+                mainPanel.add(mainPage, "MainPage");
+                cardLayout.show(mainPanel, "MainPage");
             } else {
-                User user = readUserFromFile("user.txt", username, password);
-                if (user != null) {
-                    JOptionPane.showMessageDialog(null, "로그인 성공! 게임 메인 페이지로 이동합니다.");
-                    MainPage mainPage = new MainPage(user, cardLayout, mainPanel);
-                    mainPanel.add(mainPage, "MainPage");
-                    cardLayout.show(mainPanel, "MainPage");
-                } else {
-                    // 아이디와 비밀번호 불일치 처리
-                    if (readUserFromFile("user.txt", username, "") != null) {
-                        messageLabel.setText("비밀번호를 다시 입력하세요.");
-                    } else {
-                        messageLabel.setText("아이디를 다시 입력하세요.");
-                    }
-                }
+                // 로그인 실패 시 메시지 표시
+                messageLabel.setText("로그인 실패, 다시 시도하세요.");
             }
         });
 
+        buttonPanel.add(loginButton);
+
+        JButton signUpButton = createRetroButton("회원가입", 0, 0);
         signUpButton.addActionListener(e -> handleSignUp());
+        buttonPanel.add(signUpButton);
+
+        gbc.gridy = 7;
+        loginPanel.add(buttonPanel, gbc);
 
         return loginPanel;
+    }
+
+
+    // 레트로 버튼 스타일 메서드 재사용
+    private JButton createRetroButton(String text, int x, int y) {
+        JButton button = new JButton(text);
+        button.setBounds(x, y, 200, 50);
+        button.setFont(new Font("Monospaced", Font.BOLD, 16));
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.YELLOW);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(Color.YELLOW);
+                button.setForeground(Color.BLACK);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(Color.BLACK);
+                button.setForeground(Color.YELLOW);
+            }
+        });
+        return button;
     }
 
 
