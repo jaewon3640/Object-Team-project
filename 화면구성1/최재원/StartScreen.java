@@ -1,8 +1,9 @@
 package united;
 
+import javax.sound.sampled.*;
+
 import javax.swing.*;
 import javax.swing.Timer;
-
 import java.awt.*;
 import java.io.*;
 import java.util.*;
@@ -87,6 +88,7 @@ public class StartScreen extends JFrame {
         blinkTimer.start();
 
         startButton.addActionListener(e -> {
+            playSound("coinSound.wav"); // 버튼 클릭 시 사운드 재생
             cardLayout.show(mainPanel, "LoginPage");
         });
 
@@ -96,7 +98,17 @@ public class StartScreen extends JFrame {
         return startPanel;
     }
 
-
+    private void playSound(String soundFile) {
+        try {
+            File audioFile = new File(soundFile);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     // LoginPage 생성
     private JPanel createLoginPanel() {
@@ -130,7 +142,7 @@ public class StartScreen extends JFrame {
         loginPanel.add(usernameLabel, gbc);
 
         JTextField usernameField = new JTextField(15);
-        usernameField.setFont(new Font("Monospaced", Font.PLAIN, 20));
+        usernameField.setFont(new Font("Monospaced", Font.PLAIN, 15));
         gbc.gridy = 3;
         loginPanel.add(usernameField, gbc);
 
@@ -142,7 +154,7 @@ public class StartScreen extends JFrame {
         loginPanel.add(passwordLabel, gbc);
 
         JPasswordField passwordField = new JPasswordField(15);
-        passwordField.setFont(new Font("Monospaced", Font.PLAIN, 20));
+        passwordField.setFont(new Font("Monospaced", Font.PLAIN, 15));
         gbc.gridy = 5;
         loginPanel.add(passwordField, gbc);
 
@@ -158,19 +170,28 @@ public class StartScreen extends JFrame {
         buttonPanel.setOpaque(false);
 
         JButton loginButton = createRetroButton("로그인", 0, 0);
+        // 로그인 버튼에 대한 이벤트 리스너 수정
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
             User user = readUserFromFile("user.txt", username, password);
             if (user != null) {
+                // 로그인 성공 시 WAV 소리 재생
+                playSound("loginSound.wav");
+
+                // 로그인 성공 메시지
                 JOptionPane.showMessageDialog(null, "로그인 성공! 게임 메인 페이지로 이동합니다.");
+
+                // MainPage로 이동
                 MainPage mainPage = new MainPage(user, cardLayout, mainPanel);
                 mainPanel.add(mainPage, "MainPage");
                 cardLayout.show(mainPanel, "MainPage");
             } else {
+                // 로그인 실패 시 메시지 표시
                 messageLabel.setText("로그인 실패, 다시 시도하세요.");
             }
         });
+
         buttonPanel.add(loginButton);
 
         JButton signUpButton = createRetroButton("회원가입", 0, 0);
@@ -275,6 +296,6 @@ public class StartScreen extends JFrame {
     }
 
     public static void main(String[] args) {
-        new StartScreen(); 
+        new StartScreen();
     }
 }
