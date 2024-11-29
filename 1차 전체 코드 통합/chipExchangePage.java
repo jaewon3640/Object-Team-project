@@ -124,6 +124,13 @@ public class chipExchangePage extends JPanel {
 			chipTimer.stop();
 			this.repaint();
 			cardLayout.show(mainContainer, "MainPage");
+			Component[] components = mainContainer.getComponents();
+			for (Component component : components) {
+				if (component instanceof testpage) {
+					testpage testPage = (testpage) component;
+					testPage.updateChipLabel(); // 칩 개수 업데이트
+				}
+			}
 		});
 
 		// 구성 요소 추가
@@ -150,39 +157,50 @@ public class chipExchangePage extends JPanel {
 	}
 
 	private void handleExchange() {
-		if (txtmoney.getText().length() >= 5) {
-			int result = JOptionPane.showConfirmDialog(null, "Confirm exchange?", "Exchange Confirm",
-					JOptionPane.YES_NO_OPTION);
+	    if (txtmoney.getText().length() >= 5) {
+	        int result = JOptionPane.showConfirmDialog(null, "Confirm exchange?", "Exchange Confirm",
+	                JOptionPane.YES_NO_OPTION);
 
-			if (result == JOptionPane.YES_OPTION) {
-				try {
-					confirm.setText(getChip() + " Chips Aquired!");
-					chipTimer.start();
-					confirm.setVisible(true);
-					timer.start();
-					user.setChipNum(user.getChipNum() + getChip());
-					userInfoPage.updateChipLabel(user.getChipNum()); // 칩 레이블 업데이트
-					txtmoney.setText("");
-				} catch (NumberFormatException n) {
-					JLabel label = new JLabel("Exceeded maximum money amount");
-					label.setFont(new Font("Monospaced", Font.BOLD, 15));
-					label.setForeground(Color.red);
-					JOptionPane.showMessageDialog(null, label, "ERROR", JOptionPane.WARNING_MESSAGE);
-					txtmoney.setText("");
+	        if (result == JOptionPane.YES_OPTION) {
+	            try {
+	                int acquiredChips = getChip();
+	                confirm.setText(acquiredChips + " Chips Acquired!");
+	                chipTimer.start();
+	                confirm.setVisible(true);
+	                timer.start();
 
-				}
-			} else {
-				JLabel label = new JLabel("exchange cancelled");
-				label.setFont(new Font("Monospaced", Font.BOLD, 15));
-				label.setForeground(Color.red);
-				JOptionPane.showMessageDialog(null, label, "CANCELLATION", JOptionPane.WARNING_MESSAGE);
-			}
-		} else {
-			JLabel label = new JLabel("Enter at least 10000 KRW.");
-			label.setFont(new Font("Monospaced", Font.BOLD, 15));
-			label.setForeground(Color.red);
-			JOptionPane.showMessageDialog(null, label, "WARNING", JOptionPane.WARNING_MESSAGE);
-		}
+	                // User 객체의 칩 수 업데이트
+	                user.setChipNum(user.getChipNum() + acquiredChips);
+	                userInfoPage.updateChipLabel(user.getChipNum()); // Userinfo 페이지의 칩 레이블 업데이트
+	                txtmoney.setText("");
+
+	                // testpage의 칩 개수 레이블 업데이트
+	                Component[] components = mainContainer.getComponents();
+	                for (Component component : components) {
+	                    if (component instanceof testpage) {
+	                        testpage testPage = (testpage) component;
+	                        testPage.updateChipLabel(); // 최신 칩 수 반영
+	                    }
+	                }
+	            } catch (NumberFormatException n) {
+	                JLabel label = new JLabel("Exceeded maximum money amount");
+	                label.setFont(new Font("Monospaced", Font.BOLD, 15));
+	                label.setForeground(Color.red);
+	                JOptionPane.showMessageDialog(null, label, "ERROR", JOptionPane.WARNING_MESSAGE);
+	                txtmoney.setText("");
+	            }
+	        } else {
+	            JLabel label = new JLabel("Exchange cancelled");
+	            label.setFont(new Font("Monospaced", Font.BOLD, 15));
+	            label.setForeground(Color.red);
+	            JOptionPane.showMessageDialog(null, label, "CANCELLATION", JOptionPane.WARNING_MESSAGE);
+	        }
+	    } else {
+	        JLabel label = new JLabel("Enter at least 10000 KRW.");
+	        label.setFont(new Font("Monospaced", Font.BOLD, 15));
+	        label.setForeground(Color.red);
+	        JOptionPane.showMessageDialog(null, label, "WARNING", JOptionPane.WARNING_MESSAGE);
+	    }
 	}
 
 	private int getChip() {

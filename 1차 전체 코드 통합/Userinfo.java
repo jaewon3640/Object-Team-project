@@ -126,21 +126,13 @@ public class Userinfo extends JPanel {
         JTextField birthField = createEditField(user.getBirthdate());
         panel.add(birthField, gbc);
 
-        // 칩 수는 수정 불가능
-        gbc.gridy = 4;
-        gbc.gridx = 0;
-        panel.add(createEditLabel("Chips:"), gbc);
-
-        gbc.gridx = 1;
-        JLabel chipsLabel = createInfoLabel(String.valueOf(user.getChipNum()));
-        panel.add(chipsLabel, gbc);
-
         // 버튼
         gbc.gridy = 5;
         gbc.gridwidth = 1;
         gbc.gridx = 0;
 
         JButton saveButton = createRetroButton("Save");
+     // 수정된 saveButton 액션 리스너
         saveButton.addActionListener(e -> {
             // 사용자 객체 업데이트
             user.setId(idField.getText());
@@ -158,6 +150,8 @@ public class Userinfo extends JPanel {
 
             JOptionPane.showMessageDialog(this, "Information successfully updated!");
         });
+
+
         panel.add(saveButton, gbc);
 
         gbc.gridx = 1;
@@ -181,6 +175,87 @@ public class Userinfo extends JPanel {
         label.setForeground(Color.YELLOW);
         return label;
     }
+    
+    public void refreshInfoPanel() {
+        // 정보 화면에서 사용자 데이터를 갱신
+        for (Component comp : getComponents()) {
+            if (comp instanceof JPanel && "InfoPanel".equals(((JPanel) comp).getName())) {
+                JPanel infoPanel = (JPanel) comp;
+
+                // ID, Name, Birthdate, Chips 레이블 갱신
+                for (Component child : infoPanel.getComponents()) {
+                    if (child instanceof JLabel) {
+                        JLabel label = (JLabel) child;
+                        String text = label.getText();
+
+                        if (text.startsWith("ID:")) {
+                            label.setText("ID: " + user.getId());
+                        } else if (text.startsWith("Name:")) {
+                            label.setText("Name: " + user.getName());
+                        } else if (text.startsWith("Birthdate:")) {
+                            label.setText("Birthdate: " + user.getBirthdate());
+                        } else if (text.startsWith("Chips:")) {
+                            label.setText("Chips: " + user.getChipNum());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    
+    public void saveUserToFile() {
+        File inputFile = new File("user.txt");  // 파일 경로를 확인하세요
+        StringBuilder updatedContent = new StringBuilder();
+        boolean isUpdated = false;
+
+        // 파일을 읽어 기존 내용을 수정
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+
+            // 파일의 각 줄을 확인하여 수정할 내용 찾기
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split("\\s+");
+
+                if (fields.length >= 5 && fields[0].trim().equals(user.getId())) {
+                    // ID가 동일하면 사용자 정보를 갱신
+                    updatedContent.append(user.getId()).append(" ")
+                                  .append(user.getPassword()).append(" ") // 비밀번호 갱신
+                                  .append(user.getName()).append(" ")
+                                  .append(user.getBirthdate()).append(" ")
+                                  .append(fields[4].trim())  // 기존 점수 유지
+                                  .append(System.lineSeparator());
+                    isUpdated = true;
+                } else {
+                    // 수정 대상이 아니면 기존 데이터를 그대로 유지
+                    updatedContent.append(line).append(System.lineSeparator());
+                }
+            }
+
+            if (!isUpdated) {
+                JOptionPane.showMessageDialog(this, "ID not found. Update failed.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to read user data from file.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 수정된 내용을 user.txt에 덮어쓰기
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile))) {
+            writer.write(updatedContent.toString());
+            writer.flush();  // 강제로 파일에 반영
+            System.out.println("File updated successfully!");  // 디버깅 로그 추가
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to save user data to file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
 
     private JTextField createEditField(String text) {
         JTextField field = new JTextField(text);
@@ -211,52 +286,5 @@ public class Userinfo extends JPanel {
             }
         });
         return button;
-    }
-
-    private void saveUserToFile() {
-        File inputFile = new File("user.txt");  // 파일 경로를 확인하세요
-        StringBuilder updatedContent = new StringBuilder();
-        boolean isUpdated = false;
-
-        // 파일을 읽어 기존 내용을 수정
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-            String line;
-
-            // 파일의 각 줄을 확인하여 수정할 내용 찾기
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split("\\s+");
-
-                if (fields.length >= 5 && fields[0].trim().equals(user.getId())) {
-                    // ID가 동일하면 사용자 정보를 갱신
-                    updatedContent.append(user.getId()).append(" ")
-                                  .append(user.getPassword()).append(" ") // 비밀번호 갱신
-                                  .append(user.getName()).append(" ")
-                                  .append(user.getBirthdate()).append(" ")
-                                  .append(fields[4].trim())  // 기존 칩 개수 유지
-                                  .append(System.lineSeparator());
-                    isUpdated = true;
-                } else {
-                    // 수정 대상이 아니면 기존 데이터를 그대로 유지
-                    updatedContent.append(line).append(System.lineSeparator());
-                }
-            }
-
-            if (!isUpdated) {
-                JOptionPane.showMessageDialog(this, "ID not found. Update failed.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to read user data from file.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // 수정된 내용을 user.txt에 덮어쓰기
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile))) {
-            writer.write(updatedContent.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to save user data.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }
