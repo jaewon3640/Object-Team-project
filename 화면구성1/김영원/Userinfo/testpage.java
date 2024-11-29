@@ -103,20 +103,28 @@ public class testpage extends JPanel {
 
         // 슬롯 패널 설정
         JPanel slotPanel = new JPanel();
-        slotPanel.setLayout(new GridLayout(4, 5, 0, 0)); // 슬롯 패널 간격을 0으로 설정하여 슬롯 이미지들이 빈틈없이 표시되도록 설정
-        slotPanel.setBounds(0, 0, 650, 600); // X와 Y 좌표를 재조정하여 공간 없애기 
+        slotPanel.setLayout(new GridLayout(1, 5, 0, 0)); // 열 단위로 그룹화하기 위해 1행 5열로 설정
+        slotPanel.setBounds(0, 0, 650, 600); // X와 Y 좌표를 재조정하여 공간 없애기
         slotPanel.setBackground(new Color(18, 18, 18));
         layeredPane.add(slotPanel, Integer.valueOf(1));
         reels = new JLabel[4][5];
 
 
-        for (int i = 0; i < 4; i++) {
-            int randomIndexForRow = random.nextInt(symbolIcons.length);
-            for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < 5; j++) { // 열 단위 반복
+            // 열을 감싸는 패널 생성
+            JPanel columnPanel = new JPanel();
+            columnPanel.setLayout(new GridLayout(4, 1, 0, 0)); // 각 열은 4행 1열
+            columnPanel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2)); // 노란색 테두리 추가
+            columnPanel.setBackground(new Color(18, 18, 18)); // 배경색 설정
+
+            for (int i = 0; i < 4; i++) { // 각 열의 슬롯 생성
+                int randomIndexForRow = random.nextInt(symbolIcons.length);
                 reels[i][j] = new JLabel(symbolIcons[randomIndexForRow], SwingConstants.CENTER);
-                reels[i][j].setPreferredSize(new Dimension(150, 130)); // 슬롯 크기를 더 작게 조정
-                slotPanel.add(reels[i][j]);
+                reels[i][j].setPreferredSize(new Dimension(150, 130)); // 슬롯 크기 조정
+                columnPanel.add(reels[i][j]); // 열 패널에 슬롯 추가
             }
+
+            slotPanel.add(columnPanel); // 메인 패널에 열 패널 추가
         }
 
         layeredPane.add(animatedMessageLabel, Integer.valueOf(2));
@@ -131,16 +139,16 @@ public class testpage extends JPanel {
         JPanel totalPanel = new JPanel();
         totalPanel.setBackground(new Color(34, 34, 34));
         totalPanel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2)); // 노란색 테두리
-        totalPanel.setMaximumSize(new Dimension(160, 60)); // 크기 설정
+        totalPanel.setPreferredSize(new Dimension(160, 60)); // 사이드바와 동일한 너비로 설정
         totalPanel.setLayout(new BorderLayout());
 
-        winningsButton = new JButton("점수(랭킹): ");
+        winningsButton = new JButton("<html>점수<br>(랭킹)</html>");
         winningsButton.setFont(new Font("Monospaced", Font.BOLD, 22));
         winningsButton.setForeground(Color.WHITE);
         winningsButton.setBackground(new Color(34, 34, 34));
-        winningsButton.setPreferredSize(new Dimension(160, 60));
         winningsButton.setFocusPainted(false);
-        winningsButton.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 1));
+        winningsButton.setBorder(null); // 내부 버튼 테두리 제거
+        winningsButton.setPreferredSize(new Dimension(160, 120)); // 사이드바 너비에 맞게 설정
 
         winningsButton.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -172,7 +180,7 @@ public class testpage extends JPanel {
             for (int i = 0; i < sideBarImagePaths.length; i++) {
                 sideBarImageLabels[i] = new JLabel();
                 ImageIcon icon = new ImageIcon(sideBarImagePaths[i]);
-                Image scaledImage = icon.getImage().getScaledInstance(160, 40, Image.SCALE_SMOOTH); // 사이드바 이미지 크기 조정
+                Image scaledImage = icon.getImage().getScaledInstance(140, 40, Image.SCALE_SMOOTH); // 사이드바 이미지 크기 조정
                 icon = new ImageIcon(scaledImage);
                 sideBarImageLabels[i].setIcon(icon);
                 sideBarImageLabels[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
