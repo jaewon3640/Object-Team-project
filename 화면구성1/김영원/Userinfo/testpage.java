@@ -1,5 +1,8 @@
 package Userinfo;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -46,6 +49,7 @@ public class testpage extends JPanel {
     private JLabel chipLabel; // 칩 개수를 나타낼 라벨
     private User currentUser; // User 객체
     private JButton winningsButton;
+    private Clip spinClip;
 
     public testpage(String loggedInUserId, User user, CardLayout cardLayout, JPanel mainContainer) {
         this.currentUserId = loggedInUserId;
@@ -329,6 +333,15 @@ public class testpage extends JPanel {
             timer.stop();
         }
 
+        // 이전에 재생 중인 사운드가 있으면 멈춤
+        if (spinClip != null && spinClip.isRunning()) {
+            spinClip.stop();
+            spinClip.close();
+        }
+
+        // 새로운 사운드 재생
+        spinClip = playSound("spinSound.wav"); // 사운드 파일 경로
+
         timer = new Timer(100, new ActionListener() {
             int ticks = 0;
 
@@ -344,6 +357,13 @@ public class testpage extends JPanel {
                 ticks++;
                 if (ticks > 10) {
                     timer.stop();
+
+                    // 타이머가 멈추면 사운드도 멈춤
+                    if (spinClip != null && spinClip.isRunning()) {
+                        spinClip.stop();
+                        spinClip.close();
+                    }
+
                     checkWin();
                 }
             }
@@ -352,7 +372,21 @@ public class testpage extends JPanel {
         timer.start();
     }
 
-    private JButton createRetroButton(String text) {
+    private Clip playSound(String soundFile) {
+        try {
+            File audioFile = new File(soundFile);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+            return clip; // Clip 객체 반환
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // 예외 발생 시 null 반환
+        }
+    }
+
+	private JButton createRetroButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Monospaced", Font.BOLD, 16));
         button.setBackground(Color.BLACK);
@@ -378,11 +412,9 @@ public class testpage extends JPanel {
         }
 
         if (winnings > 0) {
-            currentUser.setChipNum(currentUser.getChipNum() + winnings); // 칩 증가
             totalWinnings += winnings;
-            chipLabel.setText("칩: " + currentUser.getChipNum()); // 칩 라벨 업데이트
-            winningsButton.setText("당첨 점수: " + totalWinnings); // 당첨 점수 업데이트
-            showAnimatedMessage("축하합니다! " + winnings + "칩 획득!"); // 메시지 깜빡이게 표시
+            winningsButton.setText("당첨 점수: " + totalWinnings); // 점수 라벨 업데이트    
+            showAnimatedMessage("축하합니다! " + winnings + "점 획득!"); // 메시지 깜빡이게 표시
         } else {
             showAnimatedMessage("아쉽게도 당첨되지 않았습니다."); // 메시지 깜빡이게 표시
         }
