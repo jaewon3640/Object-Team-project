@@ -26,12 +26,11 @@ public class testpage extends JPanel {
     private JLabel[][] reels;
     private Timer timer;
     private Random random;
-    private String[] symbolPaths = { "imgs/cherry.png", "imgs/lemon.png", "imgs/banana.png", /*"imgs/watermelon.png",
+    private String[] symbolPaths = { "imgs/복숭아.png", "imgs/배.png", "imgs/키위.png", /*"imgs/watermelon.png",
             "imgs/golden-bell.png", "imgs/lucky 7.png" */}; //test할려고 
     private ImageIcon[] symbolIcons;
-    private String[] sideBarImagePaths = { "imgs/payline1.png", "imgs/payline2.png", "imgs/payline3.png",
-            "imgs/payline4.png", "imgs/payline5.png", "imgs/payline6.png", "imgs/payline7.png", "imgs/payline8.png",
-            "imgs/payline9.png", "imgs/payline10.png", "imgs/coin.png" };
+    private String[] sideBarImagePaths = { "imgs/payline1-2.png", "imgs/payline2-2.png", "imgs/payline3-2.png",
+            "imgs/4-2.png", "imgs/coin.png" };
     private JComboBox<Integer> paylineSelector;
     private final Map<Integer, int[][]> paylines = new HashMap<>();
     private int totalWinnings = 0;
@@ -76,9 +75,8 @@ public class testpage extends JPanel {
         animatedMessageLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
         animatedMessageLabel.setBackground(new Color(0, 0, 0, 150));
         animatedMessageLabel.setOpaque(true);
-        animatedMessageLabel.setBounds(0, 300, 850, 60); // 화면 가로에 맞게 중앙 배치
+        animatedMessageLabel.setBounds(0, 300, 600, 60);
         animatedMessageLabel.setVisible(false);
-
 
         Timer blinkTimer = new Timer(500, e -> animatedMessageLabel.setVisible(!animatedMessageLabel.isVisible()));
         blinkTimer.setRepeats(true);
@@ -110,7 +108,6 @@ public class testpage extends JPanel {
         layeredPane.add(slotPanel, Integer.valueOf(1));
         reels = new JLabel[4][5];
 
-
         for (int j = 0; j < 5; j++) { // 열 단위 반복
             // 열을 감싸는 패널 생성
             JPanel columnPanel = new JPanel();
@@ -139,41 +136,19 @@ public class testpage extends JPanel {
         // 누적 당첨 점수 라벨을 사이드바의 맨 위에 추가하고 테두리 설정
         JPanel totalPanel = new JPanel();
         totalPanel.setBackground(new Color(34, 34, 34));
-        totalPanel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2)); // 노란색 테두리
+        
         totalPanel.setPreferredSize(new Dimension(160, 60)); // 사이드바와 동일한 너비로 설정
         totalPanel.setLayout(new BorderLayout());
 
-     // 기존 winningsButton 설정을 삭제하고, createRetroButton 메서드를 사용하여 새로운 버튼을 설정
-        winningsButton = createRetroButton("<html>score : 0</html>", 0, 0);
-        winningsButton.setPreferredSize(new Dimension(160, 120)); // 사이드바 너비에 맞게 설정
-
-        winningsButton.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                winningsButton.setBackground(new Color(255, 215, 0)); // 버튼 효과: 배경색 변경
-                winningsButton.setForeground(Color.BLACK); // 글자색 변경
-            }
-
-            public void mouseExited(MouseEvent e) {
-                winningsButton.setBackground(new Color(34, 34, 34)); // 원래 배경색으로 복구
-                winningsButton.setForeground(Color.WHITE); // 원래 글자색으로 복구
-            }
-        });
-
-        winningsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (cardLayout != null && mainContainer != null) {
-                    cardLayout.show(mainContainer, "Ranking");
-                }
-            }
-        });
-
-        // totalPanel에 winningsButton 추가
-        totalPanel.add(winningsButton, BorderLayout.CENTER);
+        // 여기에서 점수를 버튼이 아니라 JLabel로 표시합니다
+        JLabel scoreLabel = new JLabel("<html>score: 0</html>");
+        scoreLabel.setFont(new Font("Monospaced", Font.BOLD, 22));
+        scoreLabel.setForeground(Color.WHITE);
+        totalPanel.add(scoreLabel, BorderLayout.CENTER);
 
         sideBar.add(totalPanel);
         sideBar.add(Box.createRigidArea(new Dimension(0, 10)));        
-        
+
         // 사이드바 이미지 라벨 설정 (sideBarImagePaths 초기화 여부 확인)
         if (sideBarImagePaths != null) {
             sideBarImageLabels = new JLabel[sideBarImagePaths.length];
@@ -233,41 +208,6 @@ public class testpage extends JPanel {
         spinButton.addActionListener(e -> startGame());
         endGameButton.addActionListener(e -> endGame());
     }
-    
-    private JButton createRetroButton(String text, int x, int y) {
-        JButton button = new JButton(text);
-        button.setBounds(x, y, 200, 50);
-        
-        // 레트로 느낌을 강조하기 위해 더 큰 글씨와 스타일을 적용
-        button.setFont(new Font("Press Start 2P", Font.BOLD, 24)); // 레트로 스타일의 글꼴을 사용 (Google Fonts의 Press Start 2P와 같은 글꼴)
-        button.setBackground(new Color(0, 0, 0)); // 검은색 배경
-        button.setForeground(Color.YELLOW); // 노란색 글씨
-        button.setFocusPainted(false); // 포커스 시 외곽선 제거
-        button.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3)); // 노란색 테두리 강조
-
-        // 마우스 오버 시 효과
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.YELLOW); // 배경색을 노란색으로 변경
-                button.setForeground(Color.BLACK); // 글자색을 검은색으로 변경
-            }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.BLACK); // 배경색을 원래대로 돌림
-                button.setForeground(Color.YELLOW); // 글자색을 원래대로 돌림
-            }
-        });
-        
-        // 클릭 시 약간의 효과 추가 (버튼 클릭 시 살짝 눌린 느낌)
-        button.addActionListener(e -> {
-            button.setBackground(Color.YELLOW);
-            button.setForeground(Color.BLACK);
-        });
-        
-        return button;
-    }
 
 
     // 칩 개수 업데이트
@@ -317,15 +257,16 @@ public class testpage extends JPanel {
         int cost = selectedPayline * 10; // 한 Payline 당 10칩 소모
 
         if (currentUser.getChipNum() < deductionAmount) {
-            showAnimatedMessage("칩이 부족합니다!"); // 중앙에 메시지 표시
+            showAnimatedMessage("칩이 부족합니다!");
             return;
         }
 
         currentUser.setChipNum(currentUser.getChipNum() - cost); // 칩 소모
         updateChipLabel(); // 칩 라벨 업데이트
-        showAnimatedMessage("스핀 중입니다..."); // 중앙에 메시지 표시
+        showAnimatedMessage("스핀 중입니다...");
         startSpin();
     }
+
     private void showAnimatedMessage(String message) {
         animatedMessageLabel.setText(message);
         animatedMessageLabel.setForeground(Color.YELLOW); // 글자 색을 노란색으로 설정
