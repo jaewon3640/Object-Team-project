@@ -31,7 +31,7 @@ public class testpage extends JPanel {
     private Random random;
     private String[] symbolPaths = { "imgs/배.png", "imgs/복숭아.png", "imgs/키위.png",};
     private ImageIcon[] symbolIcons;
-    private String[] sideBarImagePaths = { "imgs/payline1-2.png", "imgs/payline2-2.png", "imgs/payline3-2.png" };
+    private String[] sideBarImagePaths = { "imgs/payline1-2.png",  "imgs/payline3-2.png","imgs/payline2-2.png" };
     private JComboBox<Integer> paylineSelector;
     private final Map<Integer, int[][]> paylines = new HashMap<>();
     private int totalWinnings = 0;
