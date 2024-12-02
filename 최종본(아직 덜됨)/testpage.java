@@ -1,5 +1,8 @@
 package united;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -26,16 +29,15 @@ public class testpage extends JPanel {
     private JLabel[][] reels;
     private Timer timer;
     private Random random;
-    private String[] symbolPaths = { "imgs/복숭아.png", "imgs/배.png", "imgs/키위.png", /*"imgs/watermelon.png",
-            "imgs/golden-bell.png", "imgs/lucky 7.png" */}; //test할려고 
+    private String[] symbolPaths = { "imgs/배.png", "imgs/복숭아.png", "imgs/키위.png",};
     private ImageIcon[] symbolIcons;
-    private String[] sideBarImagePaths = { "imgs/payline1-2.png", "imgs/payline2-2.png", "imgs/payline3-2.png",
-            "imgs/4-2.png", "imgs/coin.png" };
+    private String[] sideBarImagePaths = { "imgs/payline1-2.png", "imgs/payline2-2.png", "imgs/payline3-2.png" };
     private JComboBox<Integer> paylineSelector;
     private final Map<Integer, int[][]> paylines = new HashMap<>();
     private int totalWinnings = 0;
     private JLabel animatedMessageLabel;
     private JLabel[] sideBarImageLabels;
+    private JLabel scoreLabel; // 클래스 멤버로 선언
 
     private String currentUserId;
     private ScheduledExecutorService scheduler;
@@ -45,16 +47,20 @@ public class testpage extends JPanel {
     private JLabel chipLabel; // 칩 개수를 나타낼 라벨
     private User currentUser; // User 객체
     private JButton winningsButton;
+    private Clip spinClip;
 
     public testpage(String loggedInUserId, User user, CardLayout cardLayout, JPanel mainContainer) {
         this.currentUserId = loggedInUserId;
         this.currentUser = user; // User 객체 초기화
         this.cardLayout = cardLayout;
         this.mainContainer = mainContainer;
+        mainContainer.add(new Ranking(cardLayout, mainContainer), "RankingPage");
         initializePaylines();
         initializeSymbols();
         initializeSlotGame();
         updateChipLabel(); // 칩 개수 초기화 시점에 업데이트
+        
+        
     }
 
     public void initializeSlotGame() {
@@ -108,6 +114,7 @@ public class testpage extends JPanel {
         layeredPane.add(slotPanel, Integer.valueOf(1));
         reels = new JLabel[4][5];
 
+
         for (int j = 0; j < 5; j++) { // 열 단위 반복
             // 열을 감싸는 패널 생성
             JPanel columnPanel = new JPanel();
@@ -127,59 +134,81 @@ public class testpage extends JPanel {
 
         layeredPane.add(animatedMessageLabel, Integer.valueOf(2));
 
-        // 사이드바 설정 (FlowLayout으로 변경)
+     // 사이드바 설정 (FlowLayout으로 변경)
         JPanel sideBar = new JPanel();
         sideBar.setPreferredSize(new Dimension(160, 800)); // 사이드바 높이를 화면에 맞게 설정
-        sideBar.setBackground(new Color(34, 34, 34));
+        sideBar.setBackground(Color.BLACK); // 배경색을 검정색으로 설정
         sideBar.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 5)); // FlowLayout으로 변경하여 왼쪽 정렬
 
         // 누적 당첨 점수 라벨을 사이드바의 맨 위에 추가하고 테두리 설정
         JPanel totalPanel = new JPanel();
         totalPanel.setBackground(new Color(34, 34, 34));
-        
         totalPanel.setPreferredSize(new Dimension(160, 60)); // 사이드바와 동일한 너비로 설정
         totalPanel.setLayout(new BorderLayout());
 
-        // 여기에서 점수를 버튼이 아니라 JLabel로 표시합니다
-        JLabel scoreLabel = new JLabel("<html>score: 0</html>");
+     // 기존 코드에서 지역 변수였던 scoreLabel 제거하고, 멤버로 선언된 scoreLabel 사용
+        scoreLabel = new JLabel("Score : " + currentUser.getScore() + "점", SwingConstants.CENTER);
         scoreLabel.setFont(new Font("Monospaced", Font.BOLD, 22));
         scoreLabel.setForeground(Color.WHITE);
+        scoreLabel.setBackground(Color.black);
+        scoreLabel.setOpaque(true);
+
+        scoreLabel.setPreferredSize(new Dimension(160, 60));
         totalPanel.add(scoreLabel, BorderLayout.CENTER);
+
 
         sideBar.add(totalPanel);
         sideBar.add(Box.createRigidArea(new Dimension(0, 10)));        
 
-        // 사이드바 이미지 라벨 설정 (sideBarImagePaths 초기화 여부 확인)
+        // 사이드바 이미지 라벨 설정
+     // 사이드바 이미지 라벨 설정
         if (sideBarImagePaths != null) {
             sideBarImageLabels = new JLabel[sideBarImagePaths.length];
             for (int i = 0; i < sideBarImagePaths.length; i++) {
                 sideBarImageLabels[i] = new JLabel();
                 ImageIcon icon = new ImageIcon(sideBarImagePaths[i]);
-                Image scaledImage = icon.getImage().getScaledInstance(140, 40, Image.SCALE_SMOOTH); // 사이드바 이미지 크기 조정
+                Image scaledImage = icon.getImage().getScaledInstance(150, 110, Image.SCALE_SMOOTH); // 사이드바 이미지 크기 조정
                 icon = new ImageIcon(scaledImage);
                 sideBarImageLabels[i].setIcon(icon);
                 sideBarImageLabels[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                sideBarImageLabels[i].setBackground(Color.BLACK); // 배경색을 검정색으로 설정
+                sideBarImageLabels[i].setOpaque(true);
 
                 int index = i;
-                sideBarImageLabels[i].addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        if (index == sideBarImagePaths.length - 1) { // 마지막 이미지는 칩 교환 버튼
-                            cardLayout.show(mainContainer, "ChipExchangePage");
-                        }
-                    }
-                });
+
                 sideBar.add(sideBarImageLabels[i]);
+
+                // 이미지 라벨 사이에 간격 추가
+                if (i < sideBarImagePaths.length) {
+                    sideBar.add(Box.createRigidArea(new Dimension(20, 20))); // 수직 간격 10px
+                }
             }
         }
 
-        add(sideBar, BorderLayout.EAST);
+        JButton rankingButton = createRetroButton("Ranking");
+        rankingButton.addActionListener(e -> {
+            // 랭킹 페이지로 전환
+            cardLayout.show(mainContainer, "RankingPage");
+        });
+        sideBar.add(Box.createRigidArea(new Dimension(0, 30))); // 랭킹 버튼 위에 간격 추가
+        sideBar.add(rankingButton); // 사이드바의 맨 아래에 랭킹 버튼 추가
+        
+        JButton chipExchangeButton = createRetroButton("Exchange");
+        rankingButton.addActionListener(e -> {
+            // 랭킹 페이지로 전환
+            cardLayout.show(mainContainer, "chipExchangePage");
+        });
+        sideBar.add(Box.createRigidArea(new Dimension(90, 0))); // 랭킹 버튼 위에 간격 추가
+        sideBar.add(chipExchangeButton); // 사이드바의 맨 아래에 랭킹 버튼 추가
+
+        add(sideBar, BorderLayout.EAST); // 사이드바 추가
+
 
         // 하단 컨트롤 패널 설정
         JPanel controlPanel = new JPanel();
         controlPanel.setBackground(new Color(18, 18, 18));
 
-        chipLabel = new JLabel("Chips: " + currentUser.getChipNum() + "개");
+        chipLabel = new JLabel("Chip: " + currentUser.getChipNum());
         chipLabel.setFont(new Font("Monospaced", Font.BOLD, 24));
         chipLabel.setForeground(Color.WHITE);
 
@@ -209,7 +238,6 @@ public class testpage extends JPanel {
         endGameButton.addActionListener(e -> endGame());
     }
 
-
     // 칩 개수 업데이트
     public void updateChipLabel() {
         if (currentUser != null) {
@@ -227,16 +255,41 @@ public class testpage extends JPanel {
         }
     }
     
- private void updateSidebarHighlights() {
+    private void updateSidebarHighlights() {
         int selectedPayline = (Integer) paylineSelector.getSelectedItem();
+        
+        // sideBarImageLabels의 모든 라벨을 초기화 (테두리 없애기)
         for (int i = 0; i < sideBarImageLabels.length; i++) {
-            if (i < selectedPayline) {
-                sideBarImageLabels[i].setBorder(new LineBorder(new Color(255, 87, 34), 2));
-            } else {
-                sideBarImageLabels[i].setBorder(null);
-            }
+            sideBarImageLabels[i].setBorder(null);
+        }
+
+        // 선택된 payline에 맞게 이미지 라벨에 테두리 추가
+        switch (selectedPayline) {
+            case 1:
+            case 3:
+                // 첫 번째 이미지에만 빨간 테두리 추가
+                sideBarImageLabels[0].setBorder(new LineBorder(new Color(255, 87, 34), 4));
+                break;
+            case 5:
+            case 7:
+                // 첫 번째와 두 번째 이미지에 빨간 테두리 추가
+                sideBarImageLabels[0].setBorder(new LineBorder(new Color(255, 87, 34), 4));
+                sideBarImageLabels[1].setBorder(new LineBorder(new Color(255, 87, 34), 4));
+                break;
+            case 9:
+            case 10:
+                // 모든 이미지에 빨간 테두리 추가
+                for (int i = 0; i < sideBarImageLabels.length; i++) {
+                    sideBarImageLabels[i].setBorder(new LineBorder(new Color(255, 87, 34), 4));
+                }
+                break;
+            default:
+                // 선택되지 않은 값에 대해서는 테두리 설정을 하지 않음
+                break;
         }
     }
+
+
 
     private void initializePaylines() {
         paylines.put(1, new int[][] { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 } });
@@ -305,6 +358,15 @@ public class testpage extends JPanel {
             timer.stop();
         }
 
+        // 이전에 재생 중인 사운드가 있으면 멈춤
+        if (spinClip != null && spinClip.isRunning()) {
+            spinClip.stop();
+            spinClip.close();
+        }
+
+        // 새로운 사운드 재생
+        spinClip = playSound("spinSound.wav"); // 사운드 파일 경로
+
         timer = new Timer(100, new ActionListener() {
             int ticks = 0;
 
@@ -320,6 +382,13 @@ public class testpage extends JPanel {
                 ticks++;
                 if (ticks > 10) {
                     timer.stop();
+
+                    // 타이머가 멈추면 사운드도 멈춤
+                    if (spinClip != null && spinClip.isRunning()) {
+                        spinClip.stop();
+                        spinClip.close();
+                    }
+
                     checkWin();
                 }
             }
@@ -328,11 +397,25 @@ public class testpage extends JPanel {
         timer.start();
     }
 
-    private JButton createRetroButton(String text) {
+    private Clip playSound(String soundFile) {
+        try {
+            File audioFile = new File(soundFile);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+            return clip; // Clip 객체 반환
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // 예외 발생 시 null 반환
+        }
+    }
+
+	private JButton createRetroButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Monospaced", Font.BOLD, 16));
+        button.setFont(new Font("Monospaced", Font.BOLD, 20));
         button.setBackground(Color.BLACK);
-        button.setForeground(new Color(255, 87, 34));
+        button.setForeground(Color.yellow);
         button.setPreferredSize(new Dimension(150, 50));
         button.setFocusPainted(false);
         return button;
@@ -352,16 +435,15 @@ public class testpage extends JPanel {
                         * multiplier);
             }
         }
-
         if (winnings > 0) {
-            currentUser.setChipNum(currentUser.getChipNum() + winnings); // 칩 증가
             totalWinnings += winnings;
-            chipLabel.setText("칩: " + currentUser.getChipNum()); // 칩 라벨 업데이트
-            winningsButton.setText("당첨 점수: " + totalWinnings); // 당첨 점수 업데이트
-            showAnimatedMessage("축하합니다! " + winnings + "칩 획득!"); // 메시지 깜빡이게 표시
+            currentUser.setScore(totalWinnings); // 현재 유저의 점수 업데이트
+            scoreLabel.setText("Score : " + totalWinnings + "점"); // 점수 라벨 업데이트
+            showAnimatedMessage("축하합니다! " + winnings + "점 획득!"); // 메시지 깜빡이게 표시
         } else {
             showAnimatedMessage("아쉽게도 당첨되지 않았습니다."); // 메시지 깜빡이게 표시
         }
+
     }
 
 	private int getBaseScoreForIcon(Icon icon) {
@@ -417,7 +499,7 @@ public class testpage extends JPanel {
 
 	private void highlightWin(int[][] positions) {
 		for (int[] pos : positions) {
-			reels[pos[0]][pos[1]].setBorder(new LineBorder(Color.YELLOW, 2));
+			reels[pos[0]][pos[1]].setBorder(new LineBorder(Color.RED, 2));
 		}
 	}
 
@@ -488,7 +570,6 @@ public class testpage extends JPanel {
 
 			CardLayout cardLayout = new CardLayout();
 			JPanel mainContainer = new JPanel(cardLayout);
-
 			// User 객체 생성 (아이디, 비밀번호, 이름, 생일 등 필요한 정보 입력)
 			User loggedInUser = new User("exampleUser", "password123", "홍길동", "1990-01-01");
 
